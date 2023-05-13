@@ -19,8 +19,9 @@ public class Heroes : ModuleRules
 			"GameplayAbilities",
 			"GameplayTasks",
 			"GameplayTags",
-			"DeveloperSettings"
-			
+			"DeveloperSettings",
+			"UMG",
+
 		});
 	}
 }

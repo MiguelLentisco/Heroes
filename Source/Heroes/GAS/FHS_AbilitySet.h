@@ -2,6 +2,8 @@
 
 #include "FHS_AbilitySet.generated.h"
 
+class UInputAction;
+class UInputMappingContext;
 class UAbilitySystemComponent;
 class UGameplayAbility;
 
@@ -24,12 +26,8 @@ enum class EFHS_AbilityCommand : uint8
 
 	Ability_Confirm,
 	Ability_Cancel,
-
-	MAX UMETA(Hidden)
 	
 }; // EFHS_AbilityCommand
-
-ENUM_RANGE_BY_COUNT(EFHS_AbilityCommand, EFHS_AbilityCommand::MAX)
 
 USTRUCT(BlueprintType)
 struct HEROES_API FAbilityBindData
@@ -39,8 +37,8 @@ struct HEROES_API FAbilityBindData
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowAbstract = false))
 	TSoftClassPtr<UGameplayAbility> AbilityClass;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	EFHS_AbilityCommand AbilityInput = EFHS_AbilityCommand::Ability_1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowAbstract = false))
+	TSoftObjectPtr<UInputAction> AbilityInput;
 	
 }; // FAbilityBindData
 
@@ -51,6 +49,9 @@ class HEROES_API UFHS_AbilitySet : public UDataAsset
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<FAbilityBindData> Abilities;
+	TMap<EFHS_AbilityCommand, FAbilityBindData> Abilities;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UInputMappingContext* InputMappingContext;
 	
 }; // FHS_UAbilitySet

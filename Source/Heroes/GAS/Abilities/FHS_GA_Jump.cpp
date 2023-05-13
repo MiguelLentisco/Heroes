@@ -8,6 +8,7 @@
 
 UFHS_GA_Jump::UFHS_GA_Jump()
 {
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	ActivationBlockedTags.AddTag(TAG_Status_Stun.GetTag());
 	
 } // UFHS_GA_Jump
