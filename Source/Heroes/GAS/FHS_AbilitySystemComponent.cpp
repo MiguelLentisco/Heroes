@@ -118,6 +118,11 @@ void UFHS_AbilitySystemComponent::BindAbilityActivationToEnhancedInputComponent(
 
 void UFHS_AbilitySystemComponent::AddInputMappingContext(UInputMappingContext* IMC, APlayerController* PC) const
 {
+	if (PC == nullptr)
+	{
+		return;
+	}
+	
 	auto* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
 	if (Subsystem == nullptr)
 	{

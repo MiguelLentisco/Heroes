@@ -29,5 +29,9 @@ protected:
 	void OnHealthChanged(FGameplayAttribute Attribute, float NewValue, float OldValue);
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = GAS)
 	void OnUltimatePowerChanged(FGameplayAttribute Attribute, float NewValue, float OldValue);
+
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = GAS)
+	void OnPoisonEffectChanged(const FGameplayTag PoisonTag, int32 TagCount);
+	
 	
 }; // UFHS_UW_Attributes
