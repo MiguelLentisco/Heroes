@@ -8,6 +8,11 @@
 
 void UFHS_UW_Attributes::SetupWithGAS_Implementation(UAbilitySystemComponent* ASC)
 {
+	if (ASC == nullptr)
+	{
+		return;
+	}
+	
 	CurrentASC = ASC;
 
 	// Set Health/Power Values and callbacks

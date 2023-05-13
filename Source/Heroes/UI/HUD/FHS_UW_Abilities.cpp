@@ -1,33 +1,36 @@
-﻿#include "FHS_UW_HUD.h"
+﻿#include "FHS_UW_Abilities.h"
 
-#include "FHS_UW_Attributes.h"
-#include "FHS_UW_Abilities.h"
+#include "FHS_UW_Ability.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void UFHS_UW_HUD::SetupWithGAS_Implementation(UAbilitySystemComponent* ASC)
+void UFHS_UW_Abilities::SetupWithGAS_Implementation(UAbilitySystemComponent* ASC)
 {
 	if (ASC == nullptr)
 	{
 		return;
 	}
-	
-	IFHS_GASListener::Execute_SetupWithGAS(AttributesHUD, ASC);
-	IFHS_GASListener::Execute_SetupWithGAS(AbilitiesHUD, ASC);
+
+	for (TObjectPtr<UFHS_UW_Ability> AbilityWidget : AbilityWidgets)
+	{
+		IFHS_GASListener::Execute_SetupWithGAS(AbilityWidget, ASC);
+	}
 	
 } // SetupWithGAS_Implementation
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void UFHS_UW_HUD::CleanFromGAS_Implementation(UAbilitySystemComponent* ASC)
+void UFHS_UW_Abilities::CleanFromGAS_Implementation(UAbilitySystemComponent* ASC)
 {
 	if (ASC == nullptr)
 	{
 		return;
 	}
-	
-	IFHS_GASListener::Execute_CleanFromGAS(AttributesHUD, ASC);
-	IFHS_GASListener::Execute_CleanFromGAS(AbilitiesHUD, ASC);
+
+	for (TObjectPtr<UFHS_UW_Ability> AbilityWidget : AbilityWidgets)
+	{
+		IFHS_GASListener::Execute_CleanFromGAS(AbilityWidget, ASC);
+	}
 	
 } // CleanFromGAS_Implementation
 

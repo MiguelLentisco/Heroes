@@ -2,7 +2,7 @@
 
 #include "GameplayTagContainer.h"
 #include "Engine/DataAsset.h"
-#include "GameplayAbilities/Public/Abilities/GameplayAbilityTypes.h"
+#include "Abilities/GameplayAbilityTypes.h"
 #include "FHS_HeroData.generated.h"
 
 class UFHS_Attributes_CharacterCore;
@@ -28,8 +28,5 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TArray<FAttributeDefaults> Attributes;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI)
-	TSoftClassPtr<UUserWidget> AbilitiesHUDClass;
 	
 }; // UFHS_HeroData

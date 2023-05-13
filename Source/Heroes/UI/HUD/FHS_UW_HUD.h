@@ -5,6 +5,7 @@
 #include "FHS_UW_HUD.generated.h"
 
 class UFHS_UW_Attributes;
+class UFHS_UW_Abilities;
 
 UCLASS(Abstract)
 class UFHS_UW_HUD : public UUserWidget, public IFHS_GASListener
@@ -18,5 +19,8 @@ public:
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (BindWidget))
 	TObjectPtr<UFHS_UW_Attributes> AttributesHUD;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (BindWidget))
+	TObjectPtr<UFHS_UW_Abilities> AbilitiesHUD;
 	
 }; // UFHS_UW_HUD
