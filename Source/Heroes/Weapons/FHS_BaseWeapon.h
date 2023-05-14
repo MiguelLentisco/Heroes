@@ -12,13 +12,16 @@ class AFHS_BaseWeapon : public AActor
 	GENERATED_BODY()
 	
 public:
-	/** Sets default values for this component's properties */
 	AFHS_BaseWeapon();
-	
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void BeginPlay() override;
+
+	void InitSpawnDeferred(AFHS_BaseHero* NewHeroOwner, UFHS_AbilityMeshData* NewData);
 	void SetWeaponData(UFHS_AbilityMeshData* NewData);
-	void AttachToHero(AFHS_BaseHero* Hero);
+	
+	void SetupInput();
+	void ClearInput();
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -38,12 +41,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	FVector MuzzleOffset;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UFHS_AbilityMeshData> WeaponData;
+
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<AFHS_BaseHero> HeroOwner;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UFHS_AbilityMeshData> WeaponData;
-	
-	void SetupInput();
+	bool bInputSet = false;
+
+	void SetupWeapon();
+	void AttachToHero();
 	
 }; // UFHS_BaseWeapon

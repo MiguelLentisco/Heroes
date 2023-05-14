@@ -16,7 +16,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (Categories = "Name"))
 	FGameplayTag Name;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Meshes)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Mesh)
 	TSoftObjectPtr<USkeletalMesh> Mesh;
 
 	UPROPERTY(EditAnywhere, Category = GAS)
@@ -24,7 +24,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GAS)
 	TSoftObjectPtr<UFHS_AbilitySet> AbilitySet;
-	
+
+	void SetupGAS(UFHS_AbilitySystemComponent* ASC);
 	void SetupInput(UFHS_AbilitySystemComponent* ASC, APawn* Pawn);
 	void ClearInput(APawn* Pawn);
 	

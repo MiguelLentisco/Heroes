@@ -8,6 +8,7 @@
 #include "InputActionValue.h"
 #include "FHS_BaseHero.generated.h"
 
+class AFHS_BaseWeapon;
 class UFHS_HeroData;
 class UFHS_AbilitySystemComponent;
 class UInputComponent;
@@ -19,6 +20,8 @@ class USoundBase;
 class UInputMappingContext;
 class UInputAction;
 
+DECLARE_DELEGATE(FHeroChangedStatus);
+
 UCLASS(config=Game)
 class HEROES_API AFHS_BaseHero : public ACharacter, public IAbilitySystemInterface
 {
@@ -27,25 +30,35 @@ class HEROES_API AFHS_BaseHero : public ACharacter, public IAbilitySystemInterfa
 public:
 	AFHS_BaseHero();
 
+	virtual void BeginPlay() override;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GAS)
 	TObjectPtr<UFHS_AbilitySystemComponent> ASC;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Data)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Data)
 	TObjectPtr<UFHS_HeroData> HeroData;
 
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Data)
+	TObjectPtr<AFHS_BaseWeapon> Weapon;
 
-	bool SetHeroData(UFHS_HeroData* NewHeroData);
+	FHeroChangedStatus OnHeroReady;
+	FHeroChangedStatus OnHeroCleared;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	
+	void SetHeroData(UFHS_HeroData* NewHeroData);
 
 protected:
-	bool bSetupOnBeginPlay = true;
+	bool bInputSet = false;
 	
-	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
+
+	void SetupGASInput();
+	void ClearGASInput();
 	
 	void SetupHero();
-	void SetupGASInput();
-	void SetupMeshes();
+	void SetupWeapon();
 
 #pragma region FPS_Template
 
@@ -100,5 +113,5 @@ private:
 
 #pragma endregion // FPS_Template
 
-};
+}; // AFHS_BaseHero
 

@@ -8,18 +8,44 @@
 #include "Components/CapsuleComponent.h"
 #include "Heroes/GAS/FHS_AbilitySystemComponent.h"
 #include "Heroes/GAS/Attributes/FHS_Attributes_CharacterCore.h"
-#include "Heroes/GAS/FHS_AbilitySet.h"
+#include "Heroes/Weapons/FHS_BaseWeapon.h"
+#include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 AFHS_BaseHero::AFHS_BaseHero()
 {
+	bReplicates = true;
 	SetupConstructor();
 
 	ASC = CreateDefaultSubobject<UFHS_AbilitySystemComponent>(TEXT("GAS"));
 	ASC->SetIsReplicated(true);
 
 } // AFHS_BaseHero
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseHero::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (HeroData != nullptr)
+	{
+		SetupHero();
+	}
+	
+} // BeginPlay
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseHero::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME_CONDITION(AFHS_BaseHero, Weapon, COND_None);
+	
+} // GetLifetimeReplicatedProps
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -31,51 +57,64 @@ UAbilitySystemComponent* AFHS_BaseHero::GetAbilitySystemComponent() const
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-bool AFHS_BaseHero::SetHeroData(UFHS_HeroData* NewHeroData)
+void AFHS_BaseHero::SetHeroData(UFHS_HeroData* NewHeroData)
 {
 	if (NewHeroData == nullptr || NewHeroData == HeroData)
 	{
-		return false;
+		return;
 	}
-
+	
 	if (HeroData != nullptr)
 	{
-		HeroData->ClearInput(this);
+		OnHeroCleared.ExecuteIfBound();
+		ClearGASInput();
 	}
-
+	
 	HeroData = NewHeroData;
 	SetupHero();
-	
-	return true;
 	
 } // SetHeroData
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseHero::BeginPlay()
+void AFHS_BaseHero::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	// Call the base class  
-	Super::BeginPlay();
-
-	if (bSetupOnBeginPlay)
-	{
-		SetupHero();
-	}
-
-	const bool bPlayerHero = GetLocalRole() >= ROLE_AutonomousProxy && GetController<APlayerController>() != nullptr;
-	Mesh1P->SetVisibility(bPlayerHero);
-	GetMesh()->SetVisibility(!bPlayerHero);
-
-} // BeginPlay
+	BindMovementActions(PlayerInputComponent);
+	SetupGASInput();
+	
+} // SetupPlayerInputComponent
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseHero::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void AFHS_BaseHero::SetupGASInput()
 {
-	SetupGASInput();
-	BindMovementActions(PlayerInputComponent);
+	if (bInputSet || InputComponent == nullptr)
+	{
+		return;
+	}
+
+	bInputSet = true;
+	HeroData->SetupInput(ASC, this);
+	if (Weapon != nullptr)
+	{
+		Weapon->SetupInput();
+	}
 	
-} // SetupPlayerInputComponent
+} // SetupGASInput
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseHero::ClearGASInput()
+{
+	HeroData->ClearInput(this);
+	if (Weapon != nullptr)
+	{
+		Weapon->ClearInput();
+	}
+
+	bInputSet = false;
+	
+} // ClearGASInput
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -85,41 +124,44 @@ void AFHS_BaseHero::SetupHero()
 	{
 		return;
 	}
-
-	bSetupOnBeginPlay = false;
 	
-	ASC->SetupMeshData(HeroData);
-	SetupMeshes();
+	HeroData->SetupGAS(ASC);
+	Mesh1P->SetSkeletalMeshAsset(HeroData->Hero1PMesh.LoadSynchronous());
+	GetMesh()->SetSkeletalMeshAsset(HeroData->Mesh.LoadSynchronous());
 	SetupGASInput();
+	SetupWeapon();
+	OnHeroReady.ExecuteIfBound();
 	
 } // SetupHero
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseHero::SetupGASInput()
+void AFHS_BaseHero::SetupWeapon()
 {
 	if (HeroData == nullptr)
 	{
 		return;
 	}
 
-	HeroData->SetupInput(ASC, this);
-	
-} // SetupGASInput
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-void AFHS_BaseHero::SetupMeshes()
-{
-	if (HeroData == nullptr)
+	if (Weapon == nullptr)
 	{
-		return;
+		if (!HasAuthority())
+		{
+			return;
+		}
+		
+		UClass* WeaponClass = HeroData->WeaponClass.LoadSynchronous();
+		Weapon = GetWorld()->SpawnActorDeferred<AFHS_BaseWeapon>(
+			WeaponClass != nullptr ? WeaponClass : AFHS_BaseWeapon::StaticClass(), FTransform::Identity, this);
+		Weapon->InitSpawnDeferred(this, HeroData->WeaponData.LoadSynchronous());
+		UGameplayStatics::FinishSpawningActor(Weapon, FTransform::Identity);
+	}
+	else
+	{
+		Weapon->SetWeaponData(HeroData->WeaponData.LoadSynchronous());
 	}
 	
-	Mesh1P->SetSkeletalMeshAsset(HeroData->Hero1PMesh.LoadSynchronous());
-	GetMesh()->SetSkeletalMeshAsset(HeroData->Mesh.LoadSynchronous());
-	
-} // SetupMeshes
+} // SetupWeapon
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -161,7 +203,7 @@ void AFHS_BaseHero::SetupConstructor()
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
-	GetMesh()->SetVisibility(false);
+	GetMesh()->SetOwnerNoSee(true);
 	
 } // SetupConstructor
 

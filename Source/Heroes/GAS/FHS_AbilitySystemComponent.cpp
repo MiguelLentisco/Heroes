@@ -3,7 +3,6 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "FHS_AbilitySet.h"
-#include "Heroes/Data/FHS_AbilityMeshData.h"
 #include "Net/UnrealNetwork.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -25,31 +24,6 @@ void UFHS_AbilitySystemComponent::GetLifetimeReplicatedProps(TArray<FLifetimePro
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void UFHS_AbilitySystemComponent::SetupMeshData(UFHS_AbilityMeshData* Data)
-{
-	if (Data == nullptr)
-	{
-		return;
-	}
-
-	Clear();
-
-	SetNameTag(Data->Name);
-	for (const FAttributeDefaults& Attribute : Data->Attributes)
-	{
-		InitStats(Attribute.Attributes, Attribute.DefaultStartingTable);
-	}
-
-	// The server is the only one that can grant abilities
-	if (GetOwner()->HasAuthority())
-	{
-		GiveAbilities(Data->AbilitySet.LoadSynchronous());
-	}
-	
-} // SetupMeshData
-
-// ---------------------------------------------------------------------------------------------------------------------
-
 void UFHS_AbilitySystemComponent::Clear()
 {
 	NameTag = FGameplayTag();
@@ -63,6 +37,11 @@ void UFHS_AbilitySystemComponent::Clear()
 
 void UFHS_AbilitySystemComponent::GiveAbilities(UFHS_AbilitySet* AbilitySet)
 {
+	if (AbilitySet == nullptr)
+	{
+		return;
+	}
+	
 	for (const TPair<EFHS_AbilityCommand, FAbilityBindData>& Ability : AbilitySet->Abilities)
 	{
 		UClass* AbilityClass = Ability.Value.AbilityClass.LoadSynchronous();

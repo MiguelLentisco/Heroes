@@ -1,6 +1,5 @@
 ﻿#include "FHS_PlayerController.h"
 
-#include "FHS_PlayerState.h"
 #include "Heroes/Hero/FHS_BaseHero.h"
 #include "Heroes/UI/HUD/FHS_HUD.h"
 
@@ -9,20 +8,8 @@
 void AFHS_PlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-
-	auto* Hero = Cast<AFHS_BaseHero>(InPawn);
-	const auto* PS = GetPlayerState<AFHS_PlayerState>();
 	
-	if (Hero == nullptr || PS == nullptr)
-	{
-		return;
-	}
-
-	Hero->SetOwner(this);
-	if (Hero->SetHeroData(PS->ChosenHeroData))
-	{
-		SetupHUD(InPawn);
-	}
+	InPawn->SetOwner(this);
 	
 } // OnPossess
 
@@ -32,33 +19,27 @@ void AFHS_PlayerController::AcknowledgePossession(APawn* P)
 {
 	Super::AcknowledgePossession(P);
 
-	// Do nothing for servers
-	if (GetWorld()->GetNetMode() < NM_Client)
+	if (GetNetMode() < NM_Client && IsRunningDedicatedServer())
 	{
 		return;
 	}
 
 	auto* Hero = Cast<AFHS_BaseHero>(P);
-	const auto* PS = GetPlayerState<AFHS_PlayerState>();
-	
-	if (Hero == nullptr || PS == nullptr)
+	if (Hero == nullptr)
 	{
 		return;
 	}
 	
-	if (Hero->SetHeroData(PS->ChosenHeroData))
-	{
-		SetupHUD(P);
-	}
+	Hero->OnHeroReady.BindUObject(this, &AFHS_PlayerController::SetupHUD);
+	SetupHUD();
 	
 } // AcknowledgePossession
 
-
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_PlayerController::SetupHUD(APawn* P)
+void AFHS_PlayerController::SetupHUD()
 {
-	const auto* Hero = Cast<AFHS_BaseHero>(P);
+	const auto* Hero = Cast<AFHS_BaseHero>(GetPawn());
 	AFHS_HUD* HUD = GetHUD<AFHS_HUD>();
 	if (Hero == nullptr || HUD == nullptr)
 	{
@@ -69,6 +50,21 @@ void AFHS_PlayerController::SetupHUD(APawn* P)
 	IFHS_GASListener::Execute_SetupWithGAS(HUD, Hero->GetAbilitySystemComponent());
 	
 } // SetupHUD
+
+// ------------------------------ ---------------------------------------------------------------------------------------
+
+void AFHS_PlayerController::ClearHUD()
+{
+	const auto* Hero = Cast<AFHS_BaseHero>(GetPawn());
+	AFHS_HUD* HUD = GetHUD<AFHS_HUD>();
+	if (Hero == nullptr || HUD == nullptr)
+	{
+		return;
+	}
+	
+	IFHS_GASListener::Execute_CleanFromGAS(HUD, Hero->GetAbilitySystemComponent());
+	
+} // ClearHUD
 
 // ---------------------------------------------------------------------------------------------------------------------
 

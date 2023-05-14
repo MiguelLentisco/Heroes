@@ -13,6 +13,7 @@ public:
 	virtual void AcknowledgePossession(APawn* P) override;
 
 protected:
-	void SetupHUD(APawn* P);
+	void SetupHUD();
+	void ClearHUD();
 	
 }; // AFHS_PlayerController
