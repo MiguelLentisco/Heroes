@@ -62,14 +62,3 @@ void UFHS_UW_Attributes::CleanFromGAS_Implementation(UAbilitySystemComponent* AS
 } // CleanFromGAS_Implementation
 
 // ---------------------------------------------------------------------------------------------------------------------
-
-void UFHS_UW_Attributes::BeginDestroy()
-{
-	CleanFromGAS_Implementation(nullptr);
-	
-	Super::BeginDestroy();
-	
-} // BeginDestroy
-
-// ---------------------------------------------------------------------------------------------------------------------
-

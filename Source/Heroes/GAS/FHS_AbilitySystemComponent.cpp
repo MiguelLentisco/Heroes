@@ -3,6 +3,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "FHS_AbilitySet.h"
+#include "Net/UnrealNetwork.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -14,18 +15,23 @@ UFHS_AbilitySystemComponent::UFHS_AbilitySystemComponent()
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void UFHS_AbilitySystemComponent::SetupAbilities(UFHS_AbilitySet* AbilitySet, APlayerController* PC)
+void UFHS_AbilitySystemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	if (AbilitySet == nullptr)
-	{
-		return;
-	}
-
-	GiveAbilities(AbilitySet);
-	BindAbilitiesToInput(AbilitySet, Cast<APawn>(GetOwner())->InputComponent);
-	AddInputMappingContext(AbilitySet->InputMappingContext, PC);
+	DOREPLIFETIME_CONDITION(UFHS_AbilitySystemComponent, NameTag, COND_SimulatedOnly );
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
-} // SetupAbilities
+} // GetLifetimeReplicatedProps
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void UFHS_AbilitySystemComponent::Clear()
+{
+	NameTag = FGameplayTag();
+	ClearAllAbilities();
+	RemoveAllSpawnedAttributes();
+	ActiveGameplayEffects.RemoveActiveEffects({}, -1);
+	
+} // Clear
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -91,9 +97,9 @@ void UFHS_AbilitySystemComponent::BindAbilityActivationToEnhancedInputComponent(
 		}
 		
 		EnhancedInput->BindAction(InputAction, ETriggerEvent::Triggered, this,
-		                           &UAbilitySystemComponent::AbilityLocalInputPressed, AbilityCommandIdx);
+								   &UAbilitySystemComponent::AbilityLocalInputPressed, AbilityCommandIdx);
 		EnhancedInput->BindAction(InputAction, ETriggerEvent::Completed, this,
-		                           &UAbilitySystemComponent::AbilityLocalInputReleased, AbilityCommandIdx);
+								   &UAbilitySystemComponent::AbilityLocalInputReleased, AbilityCommandIdx);
 	}
 	
 	if (const FAbilityBindData* ConfirmBind = Abilities.Find(EFHS_AbilityCommand::Ability_Confirm))
@@ -115,23 +121,3 @@ void UFHS_AbilitySystemComponent::BindAbilityActivationToEnhancedInputComponent(
 } // BindAbilityActivationToEnhancedInputComponent
 
 // ---------------------------------------------------------------------------------------------------------------------
-
-void UFHS_AbilitySystemComponent::AddInputMappingContext(UInputMappingContext* IMC, APlayerController* PC) const
-{
-	if (PC == nullptr)
-	{
-		return;
-	}
-	
-	auto* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
-	if (Subsystem == nullptr)
-	{
-		return;
-	}
-	
-	Subsystem->AddMappingContext(IMC, 1);
-		
-} // AddInputMappingContext
-
-// ---------------------------------------------------------------------------------------------------------------------
-

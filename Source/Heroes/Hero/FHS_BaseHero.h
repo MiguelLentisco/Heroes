@@ -30,16 +30,25 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GAS)
 	TObjectPtr<UFHS_AbilitySystemComponent> ASC;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Data)
+	TObjectPtr<UFHS_HeroData> HeroData;
+
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	void SetupHero(TObjectPtr<UFHS_HeroData> HeroData);
+	bool SetHeroData(UFHS_HeroData* NewHeroData);
 
 protected:
+	bool bSetupOnBeginPlay = true;
+	
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 
-	void SetupGAS(TObjectPtr<UFHS_HeroData> HeroData);
-	void SetupMeshes(TObjectPtr<UFHS_HeroData> HeroData);
+	void ClearPreviousHeroData();
+	
+	void SetupHero();
+	void SetupGAS();
+	void SetupGASInput(UInputComponent* Input);
+	void SetupMeshes();
 
 #pragma region FPS_Template
 

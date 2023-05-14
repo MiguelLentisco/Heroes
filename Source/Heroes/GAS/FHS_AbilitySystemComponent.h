@@ -14,19 +14,20 @@ class HEROES_API UFHS_AbilitySystemComponent : public UAbilitySystemComponent
 public:
 	UFHS_AbilitySystemComponent();
 	
-	UFUNCTION(BlueprintCallable, Category = "Abilities")
-	void SetupAbilities(UFHS_AbilitySet* AbilitySet, APlayerController* PC = nullptr);
-	
 	const FGameplayTag& GetNameTag() const { return NameTag; }
 	void SetNameTag(const FGameplayTag& NewName) { NameTag = NewName; }
 
-protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags", Meta = (Categories = "Name"))
-	FGameplayTag NameTag;
-
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	void Clear();
+	
 	void GiveAbilities(UFHS_AbilitySet* AbilitySet);
 	void BindAbilitiesToInput(UFHS_AbilitySet* AbilitySet, UInputComponent* Input);
+
+protected:
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Tags", Meta = (Categories = "Name"))
+	FGameplayTag NameTag;
+	
 	void BindAbilityActivationToEnhancedInputComponent(UFHS_AbilitySet* AbilitySet, UEnhancedInputComponent* Input);
-	void AddInputMappingContext(UInputMappingContext* IMC, APlayerController* PC) const;
 	
 }; // UFHS_AbilitySystemComponent

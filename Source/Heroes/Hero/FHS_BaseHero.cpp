@@ -17,6 +17,7 @@ AFHS_BaseHero::AFHS_BaseHero()
 	SetupConstructor();
 
 	ASC = CreateDefaultSubobject<UFHS_AbilitySystemComponent>(TEXT("GAS"));
+	ASC->SetIsReplicated(true);
 
 } // AFHS_BaseHero
 
@@ -30,17 +31,24 @@ UAbilitySystemComponent* AFHS_BaseHero::GetAbilitySystemComponent() const
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseHero::SetupHero(TObjectPtr<UFHS_HeroData> HeroData)
+bool AFHS_BaseHero::SetHeroData(UFHS_HeroData* NewHeroData)
 {
-	if (HeroData == nullptr)
+	if (NewHeroData == nullptr || NewHeroData == HeroData)
 	{
-		return;
+		return false;
 	}
 
-	SetupGAS(HeroData);
-	SetupMeshes(HeroData);
+	if (HeroData != nullptr)
+	{
+		ClearPreviousHeroData();
+	}
+
+	HeroData = NewHeroData;
+	SetupHero();
 	
-} // SetupHero
+	return true;
+	
+} // SetHeroData
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -49,7 +57,14 @@ void AFHS_BaseHero::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 
-	SetupMovementIMC();
+	if (bSetupOnBeginPlay)
+	{
+		SetupHero();
+	}
+
+	const bool bPlayerHero = GetLocalRole() >= ROLE_AutonomousProxy;
+	Mesh1P->SetVisibility(bPlayerHero);
+	GetMesh()->SetVisibility(!bPlayerHero);
 
 } // BeginPlay
 
@@ -57,32 +72,127 @@ void AFHS_BaseHero::BeginPlay()
 
 void AFHS_BaseHero::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
+	SetupGASInput(PlayerInputComponent);
 	BindMovementActions(PlayerInputComponent);
 	
 } // SetupPlayerInputComponent
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseHero::SetupGAS(TObjectPtr<UFHS_HeroData> HeroData)
+void AFHS_BaseHero::ClearPreviousHeroData()
 {
-	// Hard reset
-	ASC->DestroyComponent();
-	ASC = NewObject<UFHS_AbilitySystemComponent>(this);
-	ASC->RegisterComponent();
+	ASC->Clear();
+
+	if (HeroData == nullptr)
+	{
+		return;
+	}
+
+	const UFHS_AbilitySet* AbilitySet = HeroData->AbilitySet.LoadSynchronous();
+	if (AbilitySet == nullptr)
+	{
+		return;
+	}
+	
+	const auto* PC = GetController<APlayerController>();
+	if (PC == nullptr)
+	{
+		return;
+	}
+	
+	auto* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
+	if (Subsystem == nullptr)
+	{
+		return;
+	}
+	
+	Subsystem->RemoveMappingContext(AbilitySet->InputMappingContext);
+	
+} // ClearPreviousHeroData
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseHero::SetupHero()
+{
+	if (HeroData == nullptr)
+	{
+		return;
+	}
+
+	bSetupOnBeginPlay = false;
+	
+	SetupGAS();
+	SetupMeshes();
+	if (InputComponent != nullptr)
+	{
+		SetupGASInput(InputComponent);
+	}
+	
+} // SetupHero
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseHero::SetupGAS()
+{
+	if (HeroData == nullptr || ASC == nullptr)
+	{
+		return;
+	}
+	
+	// Reset
+	ASC->Clear();
 
 	ASC->SetNameTag(HeroData->HeroName);
 	for (const FAttributeDefaults& Attribute : HeroData->Attributes)
 	{
 		ASC->InitStats(Attribute.Attributes, Attribute.DefaultStartingTable);
 	}
-	ASC->SetupAbilities(HeroData->AbilitySet.LoadSynchronous(), Cast<APlayerController>(GetController()));
+
+	// The server is the only one that can grant abilities
+	if (HasAuthority())
+	{
+		ASC->GiveAbilities(HeroData->AbilitySet.LoadSynchronous());
+	}
 	
 } // SetupGAS
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseHero::SetupMeshes(TObjectPtr<UFHS_HeroData> HeroData)
+void AFHS_BaseHero::SetupGASInput(UInputComponent* Input)
 {
+	if (Input == nullptr || ASC == nullptr || HeroData == nullptr)
+	{
+		return;
+	}
+
+	UFHS_AbilitySet* Abilities = HeroData->AbilitySet.LoadSynchronous();
+	ASC->BindAbilitiesToInput(Abilities, Input);
+
+	const auto* PC = GetController<APlayerController>();
+	if (PC == nullptr)
+	{
+		return;
+	}
+	
+	auto* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
+	if (Subsystem == nullptr)
+	{
+		return;
+	}
+	
+	Subsystem->AddMappingContext(Abilities->InputMappingContext, 1);
+	
+} // SetupGASInput
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseHero::SetupMeshes()
+{
+	if (HeroData == nullptr)
+	{
+		return;
+	}
+	
 	Mesh1P->SetSkeletalMeshAsset(HeroData->Hero1PMesh.LoadSynchronous());
 	GetMesh()->SetSkeletalMeshAsset(HeroData->Hero3PMesh.LoadSynchronous());
 	
@@ -166,6 +276,8 @@ void AFHS_BaseHero::BindMovementActions(UInputComponent* PlayerInputComponent)
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AFHS_BaseHero::Move);
 	//Looking
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFHS_BaseHero::Look);
+
+	SetupMovementIMC();
 	
 } // BindMovementActions
 

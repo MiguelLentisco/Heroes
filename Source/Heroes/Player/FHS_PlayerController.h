@@ -9,6 +9,10 @@ class AFHS_PlayerController : public APlayerController
 	GENERATED_BODY()
 	
 public:
-	virtual void OnPossess(APawn* P) override;
+	virtual void OnPossess(APawn* InPawn) override;
+	virtual void AcknowledgePossession(APawn* P) override;
+
+protected:
+	void SetupHUD(APawn* P);
 	
 }; // AFHS_PlayerController

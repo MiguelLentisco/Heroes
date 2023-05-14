@@ -14,8 +14,6 @@ public:
 	virtual void SetupWithGAS_Implementation(UAbilitySystemComponent* ASC) override;
 	virtual void CleanFromGAS_Implementation(UAbilitySystemComponent* ASC) override;
 
-	virtual void BeginDestroy() override;
-
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GAS)
 	float MaxHealth = 0.f;
