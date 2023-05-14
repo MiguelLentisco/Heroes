@@ -9,5 +9,6 @@ UE_DEFINE_GAMEPLAY_TAG(TAG_Status_Poison, TEXT("Status.Poison"))
 
 UE_DEFINE_GAMEPLAY_TAG(TAG_Name, TEXT("Name"))
 UE_DEFINE_GAMEPLAY_TAG(TAG_Name_Hero, TEXT("Name.Hero"))
+UE_DEFINE_GAMEPLAY_TAG(TAG_Name_Weapon, TEXT("Name.Weapon"))
 
 // ---------------------------------------------------------------------------------------------------------------------

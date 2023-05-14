@@ -3,6 +3,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "FHS_AbilitySet.h"
+#include "Heroes/Data/FHS_AbilityMeshData.h"
 #include "Net/UnrealNetwork.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -21,6 +22,31 @@ void UFHS_AbilitySystemComponent::GetLifetimeReplicatedProps(TArray<FLifetimePro
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 } // GetLifetimeReplicatedProps
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void UFHS_AbilitySystemComponent::SetupMeshData(UFHS_AbilityMeshData* Data)
+{
+	if (Data == nullptr)
+	{
+		return;
+	}
+
+	Clear();
+
+	SetNameTag(Data->Name);
+	for (const FAttributeDefaults& Attribute : Data->Attributes)
+	{
+		InitStats(Attribute.Attributes, Attribute.DefaultStartingTable);
+	}
+
+	// The server is the only one that can grant abilities
+	if (GetOwner()->HasAuthority())
+	{
+		GiveAbilities(Data->AbilitySet.LoadSynchronous());
+	}
+	
+} // SetupMeshData
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -53,7 +79,7 @@ void UFHS_AbilitySystemComponent::GiveAbilities(UFHS_AbilitySet* AbilitySet)
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void UFHS_AbilitySystemComponent::BindAbilitiesToInput(UFHS_AbilitySet* AbilitySet, UInputComponent* Input)
+void UFHS_AbilitySystemComponent::BindAbilitiesToInput(const UFHS_AbilitySet* AbilitySet, UInputComponent* Input)
 {
 	if (Input == nullptr)
 	{
@@ -77,7 +103,7 @@ void UFHS_AbilitySystemComponent::BindAbilitiesToInput(UFHS_AbilitySet* AbilityS
 // ---------------------------------------------------------------------------------------------------------------------
 
 void UFHS_AbilitySystemComponent::BindAbilityActivationToEnhancedInputComponent(
-	UFHS_AbilitySet* AbilitySet, UEnhancedInputComponent* EnhancedInput)
+	const UFHS_AbilitySet* AbilitySet, UEnhancedInputComponent* EnhancedInput)
 {
 	const TMap<EFHS_AbilityCommand, FAbilityBindData>& Abilities = AbilitySet->Abilities;
 	

@@ -31,6 +31,9 @@ public:
 	TMap<EFHS_AbilityCommand, FAbilityBindData> Abilities;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UInputMappingContext* InputMappingContext;
+	TSoftObjectPtr<UInputMappingContext> InputMappingContext;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ClampMin = 1))
+	int32 InputPriority = 1;
 	
 }; // FHS_UAbilitySet

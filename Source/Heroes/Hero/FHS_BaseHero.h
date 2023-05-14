@@ -42,12 +42,9 @@ protected:
 	
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
-
-	void ClearPreviousHeroData();
 	
 	void SetupHero();
-	void SetupGAS();
-	void SetupGASInput(UInputComponent* Input);
+	void SetupGASInput();
 	void SetupMeshes();
 
 #pragma region FPS_Template

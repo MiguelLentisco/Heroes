@@ -64,6 +64,14 @@ void UFHS_Attributes_CharacterCore::PostGameplayEffectExecute(const FGameplayEff
 		CurrentUltimatePower.SetBaseValue(FMath::Clamp(CurrentUltimatePower.GetBaseValue(), 0.f,
 		                                               MaxUltimatePower.GetBaseValue()));
 	}
+	else if (Attribute == GetMaxHealthAttribute())
+	{
+		MaxHealth.SetBaseValue(FMath::Max(0.f, MaxHealth.GetBaseValue()));
+	}
+	else if (Attribute == GetMaxUltimatePowerAttribute())
+	{
+		MaxUltimatePower.SetBaseValue(FMath::Max(0.f, MaxUltimatePower.GetBaseValue()));
+	}
 	
 } // PostGameplayEffectExecute
 
