@@ -4,6 +4,10 @@
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+UE_DEFINE_GAMEPLAY_TAG(TAG_Data_Cooldown, TEXT("Data.Cooldown"));
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 UFHS_GameplayAbility::UFHS_GameplayAbility()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -84,7 +88,7 @@ void UFHS_GameplayAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle
 		Cooldown = ActorInfo->AbilitySystemComponent.Get()->GetNumericAttribute(CooldownAttribute);
 	}
 	
-	SpecHandle.Data.Get()->SetSetByCallerMagnitude(, Cooldown);
+	SpecHandle.Data.Get()->SetSetByCallerMagnitude(TAG_Data_Cooldown, Cooldown);
 	ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
 	
 } // ApplyCooldown
