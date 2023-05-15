@@ -4,8 +4,6 @@
 #include "Abilities/GameplayAbility.h"
 #include "FHS_GameplayAbility.generated.h"
 
-UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Data_Cooldown);
-
 UCLASS()
 class HEROES_API UFHS_GameplayAbility : public UGameplayAbility
 {

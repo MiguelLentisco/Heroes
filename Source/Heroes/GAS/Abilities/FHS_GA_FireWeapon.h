@@ -3,8 +3,6 @@
 #include "FHS_GameplayAbility.h"
 #include "FHS_GA_FireWeapon.generated.h"
 
-class AFHS_BaseWeapon;
-
 UCLASS()
 class UFHS_GA_FireWeapon : public UFHS_GameplayAbility
 {

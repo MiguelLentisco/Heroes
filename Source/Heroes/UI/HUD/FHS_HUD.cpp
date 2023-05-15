@@ -13,28 +13,30 @@ AFHS_HUD::AFHS_HUD()
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_HUD::SetupWithGAS_Implementation(UAbilitySystemComponent* ASC)
+void AFHS_HUD::SetupWithGAS_Implementation(UAbilitySystemComponent* ASC,
+                                           const TArray<UAbilitySystemComponent*>& WeaponASCs)
 {
 	if (ASC == nullptr || MainHUD == nullptr)
 	{
 		return;
 	}
 	
-	IFHS_GASListener::Execute_SetupWithGAS(MainHUD, ASC);
+	IFHS_GASListener::Execute_SetupWithGAS(MainHUD, ASC, WeaponASCs);
 	MainHUD->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	
 } // SetupWithGAS_Implementation
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_HUD::CleanFromGAS_Implementation(UAbilitySystemComponent* ASC)
+void AFHS_HUD::CleanFromGAS_Implementation(UAbilitySystemComponent* ASC,
+                                           const TArray<UAbilitySystemComponent*>& WeaponASCs)
 {
 	if (ASC == nullptr || MainHUD == nullptr)
 	{
 		return;
 	}
 
-	IFHS_GASListener::Execute_CleanFromGAS(MainHUD, ASC);
+	IFHS_GASListener::Execute_CleanFromGAS(MainHUD, ASC, WeaponASCs);
 	MainHUD->SetVisibility(ESlateVisibility::Collapsed);
 	
 } // CleanFromGAS_Implementation

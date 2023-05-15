@@ -1,10 +1,7 @@
 ﻿#include "FHS_GameplayAbility.h"
 
 #include "AbilitySystemComponent.h"
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-UE_DEFINE_GAMEPLAY_TAG(TAG_Data_Cooldown, TEXT("Data.Cooldown"));
+#include "Heroes/GAS/FHS_GameplayTags.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -34,6 +31,7 @@ UGameplayEffect* UFHS_GameplayAbility::GetCostGameplayEffect() const
 		ModifierInfo.ModifierOp = EGameplayModOp::Additive;
 		ModifierInfo.Attribute = AttributeCost.Key;
 		ModifierInfo.Magnitude = AttributeCost.Value;
+		ModifierInfo.ModifierMagnitude = FScalableFloat(-1.f);
 		
 		GECosts->Modifiers.Add(ModifierInfo);
 	}

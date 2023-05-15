@@ -53,8 +53,23 @@ void UFHS_Attributes_CharacterCore::GetLifetimeReplicatedProps(TArray<FLifetimeP
 
 void UFHS_Attributes_CharacterCore::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
-	const FGameplayAttribute& Attribute = Data.EvaluatedData.Attribute;
+	ClampAttributes(Data.EvaluatedData.Attribute);
+	
+} // PostGameplayEffectExecute
 
+// ---------------------------------------------------------------------------------------------------------------------
+
+void UFHS_Attributes_CharacterCore::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue,
+	float NewValue)
+{
+	ClampAttributes(Attribute);
+	
+} // PostAttributeChange
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void UFHS_Attributes_CharacterCore::ClampAttributes(const FGameplayAttribute& Attribute)
+{
 	if (Attribute == GetCurrentHealthAttribute())
 	{
 		CurrentHealth.SetBaseValue(FMath::Clamp(CurrentHealth.GetBaseValue(), 0.f, MaxHealth.GetBaseValue()));
@@ -62,7 +77,7 @@ void UFHS_Attributes_CharacterCore::PostGameplayEffectExecute(const FGameplayEff
 	else if (Attribute == GetCurrentUltimatePowerAttribute())
 	{
 		CurrentUltimatePower.SetBaseValue(FMath::Clamp(CurrentUltimatePower.GetBaseValue(), 0.f,
-		                                               MaxUltimatePower.GetBaseValue()));
+													   MaxUltimatePower.GetBaseValue()));
 	}
 	else if (Attribute == GetMaxHealthAttribute())
 	{
@@ -73,6 +88,6 @@ void UFHS_Attributes_CharacterCore::PostGameplayEffectExecute(const FGameplayEff
 		MaxUltimatePower.SetBaseValue(FMath::Max(0.f, MaxUltimatePower.GetBaseValue()));
 	}
 	
-} // PostGameplayEffectExecute
+} // ClampAttributes
 
 // ---------------------------------------------------------------------------------------------------------------------

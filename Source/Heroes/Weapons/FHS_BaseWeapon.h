@@ -15,20 +15,20 @@ class AFHS_BaseWeapon : public AActor
 public:
 	AFHS_BaseWeapon();
 
-	AFHS_BaseHero* GetHeroOwner() const { return HeroOwner; }
-	const FVector& GetMuzzleOffset() const { return MuzzleOffset; }
-	const TSubclassOf<AFHS_BaseProjectile>& GetProjectileClass() const { return ProjectileClass; }
+	UFHS_AbilitySystemComponent* GetAbilitySystemComponent() { return ASC; }
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void BeginPlay() override;
 
 	void InitSpawnDeferred(AFHS_BaseHero* NewHeroOwner, UFHS_AbilityMeshData* NewData);
+	UFUNCTION(Reliable, NetMulticast)
 	void SetWeaponData(UFHS_AbilityMeshData* NewData);
 	
 	void SetupInput();
 	void ClearInput();
 
 	void PrimaryFire();
+	UFUNCTION(Unreliable, NetMulticast)
 	void PlayFireMontage();
 
 protected:
@@ -37,9 +37,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UFHS_AbilitySystemComponent> ASC;
-
-	UPROPERTY(EditDefaultsOnly, Category = Projectile)
-	TSubclassOf<AFHS_BaseProjectile> ProjectileClass;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	TObjectPtr<USoundBase> FireSound;
@@ -57,6 +54,9 @@ protected:
 
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<AFHS_BaseHero> HeroOwner;
+	
+	UPROPERTY(EditDefaultsOnly, Category = Projectile)
+	TSoftClassPtr<AFHS_BaseProjectile> ProjectileClass;
 
 	bool bInputSet = false;
 

@@ -4,7 +4,8 @@
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void UFHS_UW_Ability::SetupWithGAS_Implementation(UAbilitySystemComponent* ASC)
+void UFHS_UW_Ability::SetupWithGAS_Implementation(UAbilitySystemComponent* ASC,
+                                                  const TArray<UAbilitySystemComponent*>& WeaponASCs)
 {
 	SetVisibility(ESlateVisibility::Hidden);
 	
@@ -44,7 +45,8 @@ void UFHS_UW_Ability::SetupWithGAS_Implementation(UAbilitySystemComponent* ASC)
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void UFHS_UW_Ability::CleanFromGAS_Implementation(UAbilitySystemComponent* ASC)
+void UFHS_UW_Ability::CleanFromGAS_Implementation(UAbilitySystemComponent* ASC,
+                                                  const TArray<UAbilitySystemComponent*>& WeaponASCs)
 {
 	if (ASC == nullptr || AbilityCommand == EFHS_AbilityCommand::None || LinkedGA == nullptr)
 	{

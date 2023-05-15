@@ -11,17 +11,16 @@ class HEROES_API UFHS_UW_Attributes : public UUserWidget, public IFHS_GASListene
 	GENERATED_BODY()
 	
 public:
-	virtual void SetupWithGAS_Implementation(UAbilitySystemComponent* ASC) override;
-	virtual void CleanFromGAS_Implementation(UAbilitySystemComponent* ASC) override;
+	virtual void SetupWithGAS_Implementation(UAbilitySystemComponent* ASC,
+	                                         const TArray<UAbilitySystemComponent*>& WeaponASCs) override;
+	virtual void CleanFromGAS_Implementation(UAbilitySystemComponent* ASC,
+	                                         const TArray<UAbilitySystemComponent*>& WeaponASCs) override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GAS)
 	float MaxHealth = 0.f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GAS)
 	float MaxUltimatePower = 0.f;
-	
-	UPROPERTY()
-	TWeakObjectPtr<UAbilitySystemComponent> CurrentASC;
 	
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = GAS)
 	void OnHealthChanged(FGameplayAttribute Attribute, float NewValue, float OldValue);

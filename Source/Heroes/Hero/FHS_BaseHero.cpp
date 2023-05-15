@@ -39,11 +39,24 @@ void AFHS_BaseHero::BeginPlay()
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+void AFHS_BaseHero::GetWeaponUSCs(TArray<UAbilitySystemComponent*>& WeaponUSCs) const
+{
+	WeaponUSCs.Empty();
+	for (AFHS_BaseWeapon* Weapon : Weapons)
+	{
+		WeaponUSCs.Add(Weapon->GetAbilitySystemComponent());
+	}
+	
+} // GetWeaponUSCs
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+
 void AFHS_BaseHero::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
-	DOREPLIFETIME_CONDITION(AFHS_BaseHero, Weapon, COND_None);
+	DOREPLIFETIME_CONDITION(AFHS_BaseHero, Weapons, COND_None);
 	
 } // GetLifetimeReplicatedProps
 
@@ -94,8 +107,9 @@ void AFHS_BaseHero::SetupGASInput()
 	}
 
 	bInputSet = true;
+	
 	HeroData->SetupInput(ASC, this);
-	if (Weapon != nullptr)
+	for (AFHS_BaseWeapon* Weapon : Weapons)
 	{
 		Weapon->SetupInput();
 	}
@@ -107,11 +121,11 @@ void AFHS_BaseHero::SetupGASInput()
 void AFHS_BaseHero::ClearGASInput()
 {
 	HeroData->ClearInput(this);
-	if (Weapon != nullptr)
+	for (AFHS_BaseWeapon* Weapon : Weapons)
 	{
 		Weapon->ClearInput();
 	}
-
+	
 	bInputSet = false;
 	
 } // ClearGASInput
@@ -138,28 +152,42 @@ void AFHS_BaseHero::SetupHero()
 
 void AFHS_BaseHero::SetupWeapon()
 {
-	if (HeroData == nullptr)
+	// Only spawn on server, the weapons will set themselves on BeginPlay;
+	if (!HasAuthority() || HeroData == nullptr)
 	{
 		return;
 	}
 
-	if (Weapon == nullptr)
+	const TArray<TSoftObjectPtr<UFHS_AbilityMeshData>> WeaponsData = HeroData->WeaponsData;
+
+	// Already available weapons
+	const int32 WeaponsToSetNum = FMath::Min(Weapons.Num(), WeaponsData.Num());
+	for (int32 i = 0; i < WeaponsToSetNum; ++i)
 	{
-		if (!HasAuthority())
-		{
-			return;
-		}
-		
-		UClass* WeaponClass = HeroData->WeaponClass.LoadSynchronous();
-		Weapon = GetWorld()->SpawnActorDeferred<AFHS_BaseWeapon>(
-			WeaponClass != nullptr ? WeaponClass : AFHS_BaseWeapon::StaticClass(), FTransform::Identity, this);
-		Weapon->InitSpawnDeferred(this, HeroData->WeaponData.LoadSynchronous());
-		UGameplayStatics::FinishSpawningActor(Weapon, FTransform::Identity);
+		Weapons[i]->SetWeaponData(WeaponsData[i].LoadSynchronous()); // multinet
 	}
-	// Avoid reset data when replicating on spawn
-	else if (Weapon->HasActorBegunPlay())
+	
+	const int32 WeaponsToSpawnNum = WeaponsData.Num() - Weapons.Num();
+	if (WeaponsToSpawnNum == 0)
 	{
-		Weapon->SetWeaponData(HeroData->WeaponData.LoadSynchronous());
+		return;
+	}
+
+	// Need to spawn more
+	for (int32 i = WeaponsToSetNum; i < WeaponsToSetNum + WeaponsToSpawnNum; ++i)
+	{
+		Weapons.Add(GetWorld()->SpawnActorDeferred<AFHS_BaseWeapon>(AFHS_BaseWeapon::StaticClass(),
+		                                                             FTransform::Identity, this));
+		Weapons[i]->InitSpawnDeferred(this, WeaponsData[i].LoadSynchronous());
+		UGameplayStatics::FinishSpawningActor(Weapons[i], FTransform::Identity);
+	}
+
+	// Remove if we don't need them
+	const int32 WeaponsToDeleteNum = -WeaponsToSpawnNum;
+	for (int32 i = WeaponsToSetNum + WeaponsToDeleteNum; i > WeaponsToSetNum; --i)
+	{
+		Weapons[i]->Destroy();
+		Weapons.RemoveAt(i);
 	}
 	
 } // SetupWeapon

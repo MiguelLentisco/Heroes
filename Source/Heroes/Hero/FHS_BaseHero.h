@@ -32,17 +32,11 @@ public:
 
 	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GAS)
-	TObjectPtr<UFHS_AbilitySystemComponent> ASC;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Data)
-	TObjectPtr<UFHS_HeroData> HeroData;
-
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Data)
-	TObjectPtr<AFHS_BaseWeapon> Weapon;
-
 	FHeroChangedStatus OnHeroReady;
 	FHeroChangedStatus OnHeroCleared;
+
+	TArray<AFHS_BaseWeapon*> GetWeapons() const { return Weapons; }
+	void GetWeaponUSCs(TArray<UAbilitySystemComponent*>& WeaponUSCs) const;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
@@ -50,6 +44,15 @@ public:
 	void SetHeroData(UFHS_HeroData* NewHeroData);
 
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GAS)
+	TObjectPtr<UFHS_AbilitySystemComponent> ASC;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Data)
+	TObjectPtr<UFHS_HeroData> HeroData;
+
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Data)
+	TArray<TObjectPtr<AFHS_BaseWeapon>> Weapons;
+	
 	bool bInputSet = false;
 	
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;

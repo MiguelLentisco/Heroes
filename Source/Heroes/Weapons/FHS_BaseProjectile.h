@@ -3,17 +3,28 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ScalableFloat.h"
 #include "GameFramework/Actor.h"
 #include "FHS_BaseProjectile.generated.h"
 
 class USphereComponent;
 class UProjectileMovementComponent;
+class UAbilitySystemComponent;
 
 UCLASS()
 class HEROES_API AFHS_BaseProjectile : public AActor
 {
 	GENERATED_BODY()
 
+public:
+	AFHS_BaseProjectile();
+	
+	USphereComponent* GetCollisionComp() const { return CollisionComp; }
+	UProjectileMovementComponent* GetProjectileMovement() const { return ProjectileMovement; }
+
+	void SetInstigatorUSC(UAbilitySystemComponent* WeaponUSC) { InstigatorUSC = WeaponUSC; }
+
+protected:
 	/** Sphere collision component */
 	UPROPERTY(VisibleDefaultsOnly, Category=Projectile)
 	USphereComponent* CollisionComp;
@@ -22,16 +33,16 @@ class HEROES_API AFHS_BaseProjectile : public AActor
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	UProjectileMovementComponent* ProjectileMovement;
 
-public:
-	AFHS_BaseProjectile();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FScalableFloat DamageValue = -10.f;
+
+	UPROPERTY()
+	TWeakObjectPtr<UAbilitySystemComponent> InstigatorUSC;
 
 	/** called when projectile hits something */
 	UFUNCTION()
-	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse,
+	           const FHitResult& Hit);
 
-	/** Returns CollisionComp subobject **/
-	USphereComponent* GetCollisionComp() const { return CollisionComp; }
-	/** Returns ProjectileMovement subobject **/
-	UProjectileMovementComponent* GetProjectileMovement() const { return ProjectileMovement; }
-};
+}; // AFHS_BaseProjectile
 

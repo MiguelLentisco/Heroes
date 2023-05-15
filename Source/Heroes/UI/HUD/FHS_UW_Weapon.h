@@ -2,13 +2,10 @@
 
 #include "FHS_GASListener.h"
 #include "Blueprint/UserWidget.h"
-#include "Heroes/GAS/FHS_AbilityCommand.h"
-#include "FHS_UW_Ability.generated.h"
+#include "FHS_UW_Weapon.generated.h"
 
-class UGameplayAbility;
-
-UCLASS(Abstract)
-class UFHS_UW_Ability : public UUserWidget, public IFHS_GASListener
+UCLASS()
+class UFHS_UW_Weapon : public UUserWidget, public IFHS_GASListener
 {
 	GENERATED_BODY()
 	
@@ -19,13 +16,14 @@ public:
 	                                         const TArray<UAbilitySystemComponent*>& WeaponASCs) override;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GAS)
-	EFHS_AbilityCommand AbilityCommand = EFHS_AbilityCommand::None;
-
-	UPROPERTY(BlueprintReadOnly)
-	TWeakObjectPtr<UGameplayAbility> LinkedGA;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GAS)
+	int32 AmmoClip = 0;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GAS)
+	int32 CurrentWeaponID = 0;
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = GAS)
-	void OnCooldownTagChanged(const FGameplayTag PoisonTag, int32 TagCount);
+	void SetupReady();
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = GAS)
+	void OnCurrentAmmoChanged(FGameplayAttribute Attribute, float NewValue, float OldValue);
 	
-}; // UFHS_UW_Ability
+}; // UFHS_UW_Weapon

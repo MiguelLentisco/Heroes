@@ -15,19 +15,26 @@ UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GameplayCue_Ability_FireWeapon, TEXT("Gameplay
 
 UFHS_GA_FireWeapon::UFHS_GA_FireWeapon()
 {
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	
 	ActivationBlockedTags.AddTag(TAG_Status_Stun.GetTag());
+	
 	CooldownGameplayEffectClass = UFHS_GE_ApplyCooldown::StaticClass();
 	bUseScalarCooldown = false;
 	CooldownAttribute = UFHS_Attributes_Weapon::GetFireRateAttribute();
 	CooldownTags.AddTag(TAG_Cooldown_Ability_FireWeapon.GetTag());
 	
+	AttributeCosts = {{ UFHS_Attributes_Weapon::GetCurrentAmmoAttribute(), FScalableFloat(1) }};
+	
 } // UFHS_GA_FireWeapon
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void UFHS_GA_FireWeapon::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-                                         const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+void UFHS_GA_FireWeapon::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
+                                         const FGameplayAbilityActorInfo* ActorInfo,
+                                         const FGameplayAbilityActivationInfo ActivationInfo,
+                                         const FGameplayEventData* TriggerEventData)
 {
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
@@ -41,18 +48,17 @@ void UFHS_GA_FireWeapon::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-
-	if (HasAuthority(&ActivationInfo))
-	{
-		Weapon->PrimaryFire();
-
-		FGameplayCueParameters CueParameters;
-		CueParameters.Instigator = Weapon;
-		CueParameters.Location = Weapon->GetActorLocation();
-		ActorInfo->AbilitySystemComponent->ExecuteGameplayCue(TAG_GameplayCue_Ability_FireWeapon.GetTag(), CueParameters);
-	}
+	
+	Weapon->PrimaryFire();
+	
+	FGameplayCueParameters CueParameters;
+	CueParameters.Instigator = Weapon;
+	CueParameters.Location = Weapon->GetActorLocation();
+	ActorInfo->AbilitySystemComponent->ExecuteGameplayCue(TAG_GameplayCue_Ability_FireWeapon.GetTag(), CueParameters);
 	
 	Weapon->PlayFireMontage();
+	
+	EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	
 } // ActivateAbility
 

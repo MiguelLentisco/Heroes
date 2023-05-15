@@ -1,5 +1,6 @@
 ﻿#include "FHS_GE_ApplyCooldown.h"
 
+#include "Heroes/GAS/FHS_GameplayTags.h"
 #include "Heroes/GAS/Abilities/FHS_GameplayAbility.h"
 
 // ---------------------------------------------------------------------------------------------------------------------

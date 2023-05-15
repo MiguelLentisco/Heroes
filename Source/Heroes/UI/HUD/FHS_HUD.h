@@ -15,8 +15,10 @@ public:
 	// Sets default values for this actor's properties
 	AFHS_HUD();
 
-	virtual void SetupWithGAS_Implementation(UAbilitySystemComponent* ASC) override;
-	virtual void CleanFromGAS_Implementation(UAbilitySystemComponent* ASC) override;
+	virtual void SetupWithGAS_Implementation(UAbilitySystemComponent* ASC,
+	                                         const TArray<UAbilitySystemComponent*>& WeaponASCs) override;
+	virtual void CleanFromGAS_Implementation(UAbilitySystemComponent* ASC,
+	                                         const TArray<UAbilitySystemComponent*>& WeaponASCs) override;
 
 	void CreateHUD();
 	bool IsHUDCreated() const;

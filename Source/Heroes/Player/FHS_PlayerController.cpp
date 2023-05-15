@@ -46,8 +46,11 @@ void AFHS_PlayerController::SetupHUD()
 		return;
 	}
 
+	TArray<UAbilitySystemComponent*> WeaponASCs;
+	Hero->GetWeaponUSCs(WeaponASCs);
+	
 	HUD->CreateHUD();
-	IFHS_GASListener::Execute_SetupWithGAS(HUD, Hero->GetAbilitySystemComponent());
+	IFHS_GASListener::Execute_SetupWithGAS(HUD, Hero->GetAbilitySystemComponent(), WeaponASCs);
 	
 } // SetupHUD
 
@@ -61,8 +64,11 @@ void AFHS_PlayerController::ClearHUD()
 	{
 		return;
 	}
+
+	TArray<UAbilitySystemComponent*> WeaponASCs;
+	Hero->GetWeaponUSCs(WeaponASCs);
 	
-	IFHS_GASListener::Execute_CleanFromGAS(HUD, Hero->GetAbilitySystemComponent());
+	IFHS_GASListener::Execute_CleanFromGAS(HUD, Hero->GetAbilitySystemComponent(), WeaponASCs);
 	
 } // ClearHUD
 

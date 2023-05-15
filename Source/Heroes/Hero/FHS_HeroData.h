@@ -13,11 +13,8 @@ class HEROES_API UFHS_HeroData : public UFHS_AbilityMeshData
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Mesh)
 	TSoftObjectPtr<USkeletalMesh> Hero1PMesh;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
-	TSoftClassPtr<AFHS_BaseWeapon> WeaponClass;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
-	TSoftObjectPtr<UFHS_AbilityMeshData> WeaponData;
+	TArray<TSoftObjectPtr<UFHS_AbilityMeshData>> WeaponsData;
 	
 }; // UFHS_HeroData

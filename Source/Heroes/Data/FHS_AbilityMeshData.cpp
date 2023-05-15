@@ -16,6 +16,7 @@ void UFHS_AbilityMeshData::SetupGAS(UFHS_AbilitySystemComponent* ASC)
 
 	ASC->Clear();
 	ASC->SetNameTag(Name);
+	ASC->AddLooseGameplayTag(Name);
 	for (const FAttributeDefaults& Attribute : Attributes)
 	{
 		ASC->InitStats(Attribute.Attributes, Attribute.DefaultStartingTable);

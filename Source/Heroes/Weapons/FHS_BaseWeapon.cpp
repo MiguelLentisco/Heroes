@@ -54,7 +54,7 @@ void AFHS_BaseWeapon::InitSpawnDeferred(AFHS_BaseHero* NewHeroOwner, UFHS_Abilit
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseWeapon::SetWeaponData(UFHS_AbilityMeshData* NewData)
+void AFHS_BaseWeapon::SetWeaponData_Implementation(UFHS_AbilityMeshData* NewData)
 {
 	if (NewData == nullptr || NewData == WeaponData)
 	{
@@ -75,7 +75,7 @@ void AFHS_BaseWeapon::SetWeaponData(UFHS_AbilityMeshData* NewData)
 
 void AFHS_BaseWeapon::SetupInput()
 {
-	if (bInputSet || WeaponData == nullptr || HeroOwner == nullptr)
+	if (bInputSet || WeaponData == nullptr || HeroOwner == nullptr || HeroOwner->InputComponent == nullptr)
 	{
 		return;
 	}
@@ -98,13 +98,19 @@ void AFHS_BaseWeapon::ClearInput()
 
 void AFHS_BaseWeapon::PrimaryFire()
 {
-	if (HeroOwner == nullptr  || ProjectileClass == nullptr)
+	if (HeroOwner == nullptr)
 	{
 		return;
 	}
 	
 	const APlayerController* PC = Cast<APlayerController>(HeroOwner->GetController());
 	if (PC == nullptr)
+	{
+		return;
+	}
+
+	UClass* ProjectileClassLoaded = ProjectileClass.LoadSynchronous();
+	if (ProjectileClassLoaded == nullptr)
 	{
 		return;
 	}
@@ -116,7 +122,9 @@ void AFHS_BaseWeapon::PrimaryFire()
 		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
 	// Spawn the projectile at the muzzle
-	GetWorld()->SpawnActor<AFHS_BaseProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+	auto* Bullet = GetWorld()->SpawnActor<AFHS_BaseProjectile>(ProjectileClassLoaded, SpawnLocation, SpawnRotation,
+	                                                           ActorSpawnParams);
+	Bullet->SetInstigatorUSC(ASC);
 
 	if (FireSound != nullptr)
 	{
@@ -128,7 +136,7 @@ void AFHS_BaseWeapon::PrimaryFire()
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseWeapon::PlayFireMontage()
+void AFHS_BaseWeapon::PlayFireMontage_Implementation()
 {
 	if (FireAnimation == nullptr)
 	{
@@ -172,6 +180,12 @@ void AFHS_BaseWeapon::AttachToHero()
 	HeroOwner->SetHasRifle(true);
 	const FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 	AttachToComponent(HeroOwner->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
+
+	// ASC needs autonomous proxy
+	if (GetNetMode() != NM_Standalone)
+	{
+		SetAutonomousProxy(true);
+	}
 	
 } // AttachToHero
 
