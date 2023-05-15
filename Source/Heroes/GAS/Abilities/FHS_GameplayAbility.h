@@ -10,25 +10,43 @@ class HEROES_API UFHS_GameplayAbility : public UGameplayAbility
 
 public:
 	UFHS_GameplayAbility();
+	
+	
+
+#pragma region Costs
+	
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Costs)
+	TMap<FGameplayAttribute, FScalableFloat> AttributeCosts;
+	
+	virtual UGameplayEffect* GetCostGameplayEffect() const override;
+
+#pragma endregion // Costs
 
 #pragma region Cooldown
 
 public:
-	const FScalableFloat& GetCooldown() const { return Cooldown; }
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Cooldown)
+	bool bUseScalarCooldown = true;
 	
-	virtual const FGameplayTagContainer* GetCooldownTags() const override;
-	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	                           const FGameplayAbilityActivationInfo ActivationInfo) const override;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Cooldown,
+		Meta = (EditCondition = "bUseScalarCooldown", EditConditionHides))
+	FScalableFloat CooldownScalar;
 
-protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category  = Cooldowns)
-	FScalableFloat Cooldown;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Cooldown,
+		Meta = (EditCondition = "!bUseScalarCooldown", EditConditionHides))
+	FGameplayAttribute CooldownAttribute;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category  = Cooldowns)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Cooldown)
 	FGameplayTagContainer CooldownTags;
 
 	UPROPERTY(Transient)
 	FGameplayTagContainer TempCooldownTags;
+	
+	virtual const FGameplayTagContainer* GetCooldownTags() const override;
+	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	                           const FGameplayAbilityActivationInfo ActivationInfo) const override;
+	
 
 #pragma endregion // Cooldown
 	

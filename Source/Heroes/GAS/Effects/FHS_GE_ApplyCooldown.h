@@ -1,10 +1,10 @@
 ﻿#pragma once
 
 #include "GameplayEffect.h"
-#include "FHS_GE_ApplyCooldown.generated.h" 
+#include "FHS_GE_ApplyCooldown.generated.h"
 
 /**
- * @brief General GE for applying the Cooldown on a @UFHS_GameplayAbility using @UFHS_MMC_Cooldown
+ * @brief General GE for applying cooldown on a @UFHS_GameplayAbility
  */
 UCLASS()
 class HEROES_API UFHS_GE_ApplyCooldown : public UGameplayEffect

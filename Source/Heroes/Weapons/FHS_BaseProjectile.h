@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "HeroesProjectile.generated.h"
+#include "FHS_BaseProjectile.generated.h"
 
 class USphereComponent;
 class UProjectileMovementComponent;
 
-UCLASS(config=Game)
-class AHeroesProjectile : public AActor
+UCLASS()
+class HEROES_API AFHS_BaseProjectile : public AActor
 {
 	GENERATED_BODY()
 
@@ -23,7 +23,7 @@ class AHeroesProjectile : public AActor
 	UProjectileMovementComponent* ProjectileMovement;
 
 public:
-	AHeroesProjectile();
+	AFHS_BaseProjectile();
 
 	/** called when projectile hits something */
 	UFUNCTION()

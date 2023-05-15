@@ -15,9 +15,11 @@ UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Cooldown_Ability_Dash, TEXT("Cooldown.Ability.
 
 UFHS_GA_Dash::UFHS_GA_Dash()
 {
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	ActivationBlockedTags.AddTag(TAG_Status_Stun.GetTag());
 	CooldownGameplayEffectClass = UFHS_GE_ApplyCooldown::StaticClass();
-	Cooldown = 5.f;
+	bUseScalarCooldown = true;
+	CooldownScalar = 5.f;
 	CooldownTags.AddTag(TAG_Cooldown_Ability_Dash.GetTag());
 	
 } // UFHS_GA_Dash

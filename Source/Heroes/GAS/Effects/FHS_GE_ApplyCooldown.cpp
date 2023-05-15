@@ -1,6 +1,6 @@
 ﻿#include "FHS_GE_ApplyCooldown.h"
 
-#include "MMC/FHS_MMC_Cooldown.h"
+#include "Heroes/GAS/FHS_GameplayTags.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -8,9 +8,9 @@ UFHS_GE_ApplyCooldown::UFHS_GE_ApplyCooldown()
 {
 	DurationPolicy = EGameplayEffectDurationType::HasDuration;
 
-	FCustomCalculationBasedFloat MMC;
-	MMC.CalculationClassMagnitude = UFHS_MMC_Cooldown::StaticClass();
-	DurationMagnitude = MMC;
+	FSetByCallerFloat ByCaller;
+	ByCaller.DataTag = TAG_Data_Cooldown.GetTag();
+	DurationMagnitude = ByCaller;
 	
 } // UFHS_GE_ApplyCooldown
 

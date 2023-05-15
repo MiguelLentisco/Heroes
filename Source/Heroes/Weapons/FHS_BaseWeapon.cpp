@@ -1,8 +1,10 @@
 ﻿#include "FHS_BaseWeapon.h"
 
+#include "FHS_BaseProjectile.h"
 #include "Heroes/Data/FHS_AbilityMeshData.h"
 #include "Heroes/GAS/FHS_AbilitySystemComponent.h"
 #include "Heroes/Hero/FHS_BaseHero.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -91,6 +93,57 @@ void AFHS_BaseWeapon::ClearInput()
 	bInputSet = false;
 	
 } // ClearInput
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseWeapon::PrimaryFire()
+{
+	if (HeroOwner == nullptr  || ProjectileClass == nullptr)
+	{
+		return;
+	}
+	
+	const APlayerController* PC = Cast<APlayerController>(HeroOwner->GetController());
+	if (PC == nullptr)
+	{
+		return;
+	}
+	
+	const FRotator SpawnRotation = PC->PlayerCameraManager->GetCameraRotation();
+	const FVector SpawnLocation = HeroOwner->GetActorLocation() + SpawnRotation.RotateVector(MuzzleOffset);
+	FActorSpawnParameters ActorSpawnParams;
+	ActorSpawnParams.SpawnCollisionHandlingOverride =
+		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+
+	// Spawn the projectile at the muzzle
+	GetWorld()->SpawnActor<AFHS_BaseProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+
+	if (FireSound != nullptr)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, FireSound, HeroOwner->GetActorLocation());
+	}
+	
+	
+} // PrimaryFire
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseWeapon::PlayFireMontage()
+{
+	if (FireAnimation == nullptr)
+	{
+		return;
+	}
+	
+	UAnimInstance* AnimInstance = HeroOwner->GetMesh1P()->GetAnimInstance();
+	if (AnimInstance == nullptr)
+	{
+		return;
+	}
+	
+	AnimInstance->Montage_Play(FireAnimation, 1.f);
+	
+} // PlayFireMontage
 
 // ---------------------------------------------------------------------------------------------------------------------
 

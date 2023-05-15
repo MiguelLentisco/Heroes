@@ -156,7 +156,8 @@ void AFHS_BaseHero::SetupWeapon()
 		Weapon->InitSpawnDeferred(this, HeroData->WeaponData.LoadSynchronous());
 		UGameplayStatics::FinishSpawningActor(Weapon, FTransform::Identity);
 	}
-	else
+	// Avoid reset data when replicating on spawn
+	else if (Weapon->HasActorBegunPlay())
 	{
 		Weapon->SetWeaponData(HeroData->WeaponData.LoadSynchronous());
 	}
