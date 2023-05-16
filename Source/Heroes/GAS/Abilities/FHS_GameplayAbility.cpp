@@ -30,8 +30,7 @@ UGameplayEffect* UFHS_GameplayAbility::GetCostGameplayEffect() const
 		FGameplayModifierInfo ModifierInfo;
 		ModifierInfo.ModifierOp = EGameplayModOp::Additive;
 		ModifierInfo.Attribute = AttributeCost.Key;
-		ModifierInfo.Magnitude = AttributeCost.Value;
-		ModifierInfo.ModifierMagnitude = FScalableFloat(-1.f);
+		ModifierInfo.ModifierMagnitude = AttributeCost.Value;
 		
 		GECosts->Modifiers.Add(ModifierInfo);
 	}
@@ -39,6 +38,41 @@ UGameplayEffect* UFHS_GameplayAbility::GetCostGameplayEffect() const
 	return GECosts;
 	
 } // GetCostGameplayEffect
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void UFHS_GameplayAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
+{
+	// Hack in order to use runtime GE for applying effect costs
+	const UGameplayEffect* CostGE = GetCostGameplayEffect();
+	if (CostGE == nullptr || !HasAuthorityOrPredictionKey(ActorInfo, &ActivationInfo))
+	{
+		return;
+	}
+
+	const int32 AbilityLevel = GetAbilityLevel(Handle, ActorInfo);
+	FGameplayEffectSpec* NewSpec = new FGameplayEffectSpec(CostGE, MakeEffectContext(Handle, ActorInfo), AbilityLevel);
+	const FGameplayEffectSpecHandle SpecHandle = FGameplayEffectSpecHandle(NewSpec);
+
+	if (!SpecHandle.IsValid())
+	{
+		return;
+	}
+	
+	FGameplayAbilitySpec* AbilitySpec = ActorInfo->AbilitySystemComponent->FindAbilitySpecFromHandle(Handle);
+	ApplyAbilityTagsToGameplayEffectSpec(*SpecHandle.Data.Get(), AbilitySpec);
+
+	// Copy over set by caller magnitudes
+	if (AbilitySpec != nullptr)
+	{
+		SpecHandle.Data->SetByCallerTagMagnitudes = AbilitySpec->SetByCallerTagMagnitudes;
+	}
+	
+	SpecHandle.Data->StackCount = AbilityLevel;
+	ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
+	
+} // ApplyCost
 
 #pragma endregion // Costs
 

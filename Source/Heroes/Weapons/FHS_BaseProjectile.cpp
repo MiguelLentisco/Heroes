@@ -46,7 +46,8 @@ AFHS_BaseProjectile::AFHS_BaseProjectile()
 void AFHS_BaseProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
                                 FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (!HasAuthority() || OtherActor == nullptr || OtherActor == this)
+	if (!HasAuthority() || OtherActor == nullptr || OtherActor == this || (GetInstigator() != nullptr && GetInstigator()
+		== OtherActor))
 	{
 		Destroy();
 		return;

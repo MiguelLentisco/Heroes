@@ -4,40 +4,43 @@
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void UFHS_UW_Weapon::SetupWithGAS_Implementation(UAbilitySystemComponent* ASC,
-                                                 const TArray<UAbilitySystemComponent*>& WeaponASCs)
+void UFHS_UW_Weapon::SetupWithGAS_Implementation(UAbilitySystemComponent* ASC)
 {
-	const FGameplayAttribute CurrentAmmoAttribute = UFHS_Attributes_Weapon::GetCurrentAmmoAttribute();
-	for (int32 i = 0; i < WeaponASCs.Num(); ++i)
+	if (ASC == nullptr)
 	{
-		WeaponASCs[i]->GetGameplayAttributeValueChangeDelegate(CurrentAmmoAttribute).AddWeakLambda(this,
-		[this, i](const FOnAttributeChangeData& ChangedData)
-		{
-			if (i == CurrentWeaponID)
-			{
-				OnCurrentAmmoChanged(ChangedData.Attribute, ChangedData.NewValue, ChangedData.OldValue);
-			}
-		});
+		return;
 	}
+	
+	const FGameplayAttribute CurrentAmmoAttribute = UFHS_Attributes_Weapon::GetCurrentAmmoAttribute();
+	
+	ASC->GetGameplayAttributeValueChangeDelegate(CurrentAmmoAttribute).AddWeakLambda(this,
+	[this](const FOnAttributeChangeData& ChangedData)
+	{
+		OnCurrentAmmoChanged(ChangedData.Attribute, ChangedData.NewValue, ChangedData.OldValue);
+	});
+
+	AmmoClip = 0;
+	CurrentAmmo = 0;
 
 	const FGameplayAttribute AmmoClipAttribute = UFHS_Attributes_Weapon::GetAmmoClipAttribute();
-	const bool bHasCurrentWeapon = WeaponASCs.IsValidIndex(CurrentWeaponID);
-	AmmoClip = bHasCurrentWeapon ? FMath::Floor(WeaponASCs[CurrentWeaponID]->GetNumericAttribute(AmmoClipAttribute)) : 0;
+	AmmoClip = ASC->GetNumericAttribute(AmmoClipAttribute);
+	CurrentAmmo = ASC->GetNumericAttribute(CurrentAmmoAttribute);
+	
 	SetupReady();
 	
 } // SetupWithGAS_Implementation
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void UFHS_UW_Weapon::CleanFromGAS_Implementation(UAbilitySystemComponent* ASC,
-                                                 const TArray<UAbilitySystemComponent*>& WeaponASCs)
+void UFHS_UW_Weapon::CleanFromGAS_Implementation(UAbilitySystemComponent* ASC)
 {
-	const FGameplayAttribute CurrentAmmoAttribute = UFHS_Attributes_Weapon::GetCurrentAmmoAttribute();
-	for (int32 i = 0; i < WeaponASCs.Num(); ++i)
+	if (ASC == nullptr)
 	{
-		WeaponASCs[i]->GetGameplayAttributeValueChangeDelegate(CurrentAmmoAttribute).RemoveAll(this);
+		return;
 	}
-	CurrentWeaponID = 0;
+	
+	const FGameplayAttribute CurrentAmmoAttribute = UFHS_Attributes_Weapon::GetCurrentAmmoAttribute();
+	ASC->GetGameplayAttributeValueChangeDelegate(CurrentAmmoAttribute).RemoveAll(this);
 	
 } // CleanFromGAS_Implementation
 

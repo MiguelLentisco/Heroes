@@ -4,12 +4,11 @@
 #include "Heroes/Data/FHS_AbilityMeshData.h"
 #include "Heroes/GAS/FHS_AbilitySystemComponent.h"
 #include "Heroes/Hero/FHS_BaseHero.h"
-#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-AFHS_BaseWeapon::AFHS_BaseWeapon() : MuzzleOffset(FVector(100.f, .0f, 10.f))
+AFHS_BaseWeapon::AFHS_BaseWeapon()
 {
 	bReplicates = true;
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
@@ -23,94 +22,102 @@ AFHS_BaseWeapon::AFHS_BaseWeapon() : MuzzleOffset(FVector(100.f, .0f, 10.f))
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+UAbilitySystemComponent* AFHS_BaseWeapon::GetAbilitySystemComponent() const
+{
+	return ASC;
+	
+} // GetAbilitySystemComponent
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 void AFHS_BaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(AFHS_BaseWeapon, WeaponData, COND_None);
 	DOREPLIFETIME_CONDITION(AFHS_BaseWeapon, HeroOwner, COND_None);
+	DOREPLIFETIME_CONDITION(AFHS_BaseWeapon, bMainWeapon, COND_None);
 	
 } // GetLifetimeReplicatedProps
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseWeapon::BeginPlay()
+void AFHS_BaseWeapon::SetHeroOwner(AFHS_BaseHero* NewHero)
 {
-	Super::BeginPlay();
-	
-	AttachToHero();
-	SetupWeapon();
-	
-} // BeginPlay
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-void AFHS_BaseWeapon::InitSpawnDeferred(AFHS_BaseHero* NewHeroOwner, UFHS_AbilityMeshData* NewData)
-{
-	HeroOwner = NewHeroOwner;
-	WeaponData = NewData;
-		
-} // InitSpawnDeferred
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-void AFHS_BaseWeapon::SetWeaponData_Implementation(UFHS_AbilityMeshData* NewData)
-{
-	if (NewData == nullptr || NewData == WeaponData)
+	if (!HasAuthority() || NewHero == nullptr)
 	{
 		return;
 	}
 
-	if (WeaponData != nullptr)
+	HeroOwner = NewHero;
+	OnRep_HeroOwner();
+	SetAutonomousProxy(true);
+	
+} // SetHeroOwner_Implementation
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseWeapon::SetWeaponData(UFHS_AbilityMeshData* NewData)
+{
+	if (!HasAuthority() || NewData == nullptr || NewData == WeaponData)
 	{
-		ClearInput();
+		return;
 	}
 	
+	UFHS_AbilityMeshData* OldData = NewData;
 	WeaponData = NewData;
-	SetupWeapon();
+	WeaponData->SetupGAS(ASC);
+	OnRep_WeaponData(OldData);
 	
 } // SetWeaponData
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseWeapon::SetupInput()
+void AFHS_BaseWeapon::SetMainWeapon(bool bNewMainWeapon)
 {
-	if (bInputSet || WeaponData == nullptr || HeroOwner == nullptr || HeroOwner->InputComponent == nullptr)
+	if (!HasAuthority())
+	{
+		return;
+	}
+	
+	bMainWeapon = bNewMainWeapon;
+	OnRep_bMainWeapon();
+	
+} // SetMainWeapon
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseWeapon::SetupInput(bool bEnable)
+{
+	if (bInputSet == bEnable || WeaponData == nullptr || HeroOwner == nullptr || HeroOwner->InputComponent == nullptr)
 	{
 		return;
 	}
 
-	bInputSet = true;
-	WeaponData->SetupInput(ASC, HeroOwner);
+	bInputSet = bEnable;
+	if (bInputSet)
+	{
+		WeaponData->SetupInput(ASC, HeroOwner);
+	}
+	else
+	{
+		WeaponData->ClearInput(ASC, HeroOwner);
+	}
+	OnWeaponInputChanged.Broadcast(bInputSet);
 	
 } // SetupGAS
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseWeapon::ClearInput()
+void AFHS_BaseWeapon::PrimaryFire(const TSubclassOf<AFHS_BaseProjectile>& ProjectileClass, const FVector& MuzzleOffset)
 {
-	WeaponData->ClearInput(HeroOwner);
-	bInputSet = false;
-	
-} // ClearInput
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-void AFHS_BaseWeapon::PrimaryFire()
-{
-	if (HeroOwner == nullptr)
+	if (!HasAuthority() || HeroOwner == nullptr || ProjectileClass == nullptr)
 	{
 		return;
 	}
 	
 	const APlayerController* PC = Cast<APlayerController>(HeroOwner->GetController());
 	if (PC == nullptr)
-	{
-		return;
-	}
-
-	UClass* ProjectileClassLoaded = ProjectileClass.LoadSynchronous();
-	if (ProjectileClassLoaded == nullptr)
 	{
 		return;
 	}
@@ -122,23 +129,23 @@ void AFHS_BaseWeapon::PrimaryFire()
 		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
 	// Spawn the projectile at the muzzle
-	auto* Bullet = GetWorld()->SpawnActor<AFHS_BaseProjectile>(ProjectileClassLoaded, SpawnLocation, SpawnRotation,
+	auto* Bullet = GetWorld()->SpawnActor<AFHS_BaseProjectile>(ProjectileClass, SpawnLocation, SpawnRotation,
 	                                                           ActorSpawnParams);
-	Bullet->SetInstigatorUSC(ASC);
-
-	if (FireSound != nullptr)
+	if (Bullet == nullptr)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, FireSound, HeroOwner->GetActorLocation());
+		return;
 	}
 	
+	Bullet->SetInstigator(HeroOwner);
+	Bullet->SetInstigatorUSC(ASC);
 	
 } // PrimaryFire
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseWeapon::PlayFireMontage_Implementation()
+void AFHS_BaseWeapon::PlayFireMontage_Implementation(UAnimMontage* ShootAnim)
 {
-	if (FireAnimation == nullptr)
+	if (ShootAnim == nullptr || HeroOwner == nullptr)
 	{
 		return;
 	}
@@ -149,24 +156,54 @@ void AFHS_BaseWeapon::PlayFireMontage_Implementation()
 		return;
 	}
 	
-	AnimInstance->Montage_Play(FireAnimation, 1.f);
+	AnimInstance->Montage_Play(ShootAnim, 1.f);
 	
 } // PlayFireMontage
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseWeapon::SetupWeapon()
+void AFHS_BaseWeapon::OnRep_WeaponData(UFHS_AbilityMeshData* OldWeaponData)
+{
+	if (OldWeaponData != nullptr)
+	{
+		SetupInput(false);
+	}
+	
+	SetupWeaponMesh();
+	SetupInput(true);
+	
+} // OnRep_WeaponData
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseWeapon::OnRep_HeroOwner()
+{
+	AttachToHero();
+	SetupInput(true);
+	
+} // OnRep_HeroOwner
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseWeapon::OnRep_bMainWeapon()
+{
+	SetActorHiddenInGame(!bMainWeapon);
+	SetupInput(bMainWeapon);
+	
+} // OnRep_bMainWeapon
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseWeapon::SetupWeaponMesh()
 {
 	if (WeaponData == nullptr)
 	{
 		return;
 	}
 	
-	WeaponData->SetupGAS(ASC);
 	Mesh->SetSkeletalMesh(WeaponData->Mesh.LoadSynchronous());
-	SetupInput();
 	
-} // SetupWeapon
+} // SetupWeaponMesh
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -177,15 +214,8 @@ void AFHS_BaseWeapon::AttachToHero()
 		return;
 	}
 	
-	HeroOwner->SetHasRifle(true);
 	const FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 	AttachToComponent(HeroOwner->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
-
-	// ASC needs autonomous proxy
-	if (GetNetMode() != NM_Standalone)
-	{
-		SetAutonomousProxy(true);
-	}
 	
 } // AttachToHero
 

@@ -54,6 +54,7 @@ void UFHS_GA_Jump::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	}
 
 	Character->Jump();
+	Character->LandedDelegate.RemoveAll(this);
 	Character->LandedDelegate.AddDynamic(this, &UFHS_GA_Jump::OnCharacterLanded);
 	
 } // ActivateAbility
@@ -74,7 +75,7 @@ void UFHS_GA_Jump::InputReleased(const FGameplayAbilitySpecHandle Handle, const 
 	const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	StopJumping();
-	EndAbility(Handle, ActorInfo, ActivationInfo, false, false);
+	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 	
 } // InputReleased
 
@@ -83,7 +84,7 @@ void UFHS_GA_Jump::InputReleased(const FGameplayAbilitySpecHandle Handle, const 
 void UFHS_GA_Jump::OnCharacterLanded(const FHitResult& Hit)
 {
 	StopJumping();
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	
 } // OnCharacterLanded
 

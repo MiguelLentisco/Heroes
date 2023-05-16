@@ -8,7 +8,7 @@ class UFHS_AbilitySet;
 class UFHS_AbilitySystemComponent;
 
 UCLASS()
-class UFHS_AbilityMeshData : public UDataAsset
+class HEROES_API UFHS_AbilityMeshData : public UDataAsset
 {
 	GENERATED_BODY()
 	
@@ -27,6 +27,6 @@ public:
 
 	void SetupGAS(UFHS_AbilitySystemComponent* ASC);
 	void SetupInput(UFHS_AbilitySystemComponent* ASC, APawn* Pawn);
-	void ClearInput(APawn* Pawn);
+	void ClearInput(UFHS_AbilitySystemComponent* ASC, APawn* Pawn);
 	
 }; // UFHS_AbilityMeshData

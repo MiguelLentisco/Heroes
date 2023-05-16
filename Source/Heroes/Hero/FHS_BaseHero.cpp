@@ -9,7 +9,6 @@
 #include "Heroes/GAS/FHS_AbilitySystemComponent.h"
 #include "Heroes/GAS/Attributes/FHS_Attributes_CharacterCore.h"
 #include "Heroes/Weapons/FHS_BaseWeapon.h"
-#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -26,42 +25,6 @@ AFHS_BaseHero::AFHS_BaseHero()
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseHero::BeginPlay()
-{
-	Super::BeginPlay();
-
-	if (HeroData != nullptr)
-	{
-		SetupHero();
-	}
-	
-} // BeginPlay
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-void AFHS_BaseHero::GetWeaponUSCs(TArray<UAbilitySystemComponent*>& WeaponUSCs) const
-{
-	WeaponUSCs.Empty();
-	for (AFHS_BaseWeapon* Weapon : Weapons)
-	{
-		WeaponUSCs.Add(Weapon->GetAbilitySystemComponent());
-	}
-	
-} // GetWeaponUSCs
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-
-void AFHS_BaseHero::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
-	DOREPLIFETIME_CONDITION(AFHS_BaseHero, Weapons, COND_None);
-	
-} // GetLifetimeReplicatedProps
-
-// ---------------------------------------------------------------------------------------------------------------------
-
 UAbilitySystemComponent* AFHS_BaseHero::GetAbilitySystemComponent() const
 {
 	return ASC;
@@ -70,90 +33,97 @@ UAbilitySystemComponent* AFHS_BaseHero::GetAbilitySystemComponent() const
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseHero::SetHeroData(UFHS_HeroData* NewHeroData)
+void AFHS_BaseHero::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME_CONDITION(AFHS_BaseHero, HeroData, COND_None);
+	DOREPLIFETIME_CONDITION(AFHS_BaseHero, CurrentWeapon, COND_None);
+	
+} // GetLifetimeReplicatedProps
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseHero::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	
+	BindMovementActions(PlayerInputComponent);
+
+	if (!HasActorBegunPlay())
+	{
+		return;
+	}
+		
+	SetupGASInput(true);
+	if (CurrentWeapon != nullptr)
+	{
+		CurrentWeapon->SetupInput(true);
+	}
+	
+} // SetupPlayerInputComponent
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseHero::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (HasAuthority())
+	{
+		HeroData->SetupGAS(ASC);
+		SetupWeapons();
+	}
+	
+	OnRep_HeroData(nullptr);
+	
+} // BeginPlay
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseHero::SetHeroData_Implementation(UFHS_HeroData* NewHeroData)
 {
 	if (NewHeroData == nullptr || NewHeroData == HeroData)
 	{
 		return;
 	}
 	
-	if (HeroData != nullptr)
-	{
-		OnHeroCleared.ExecuteIfBound();
-		ClearGASInput();
-	}
+	UFHS_HeroData* PreviousData = HeroData;
 	
 	HeroData = NewHeroData;
-	SetupHero();
+	HeroData->SetupGAS(ASC);
+	SetupWeapons();
+	OnRep_HeroData(PreviousData);
 	
 } // SetHeroData
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseHero::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void AFHS_BaseHero::OnRep_HeroData(UFHS_HeroData* PreviousData)
 {
-	BindMovementActions(PlayerInputComponent);
-	SetupGASInput();
+	if (PreviousData != nullptr)
+	{
+		SetupGASInput(false);
+	}
 	
-} // SetupPlayerInputComponent
+	SetupMeshes();
+	SetupGASInput(true);
+	
+} // OnRep_HeroData
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseHero::SetupGASInput()
+void AFHS_BaseHero::OnRep_CurrentWeapon()
 {
-	if (bInputSet || InputComponent == nullptr)
-	{
-		return;
-	}
-
-	bInputSet = true;
+	OnMainWeaponChanged.Broadcast(CurrentWeapon);
 	
-	HeroData->SetupInput(ASC, this);
-	for (AFHS_BaseWeapon* Weapon : Weapons)
-	{
-		Weapon->SetupInput();
-	}
-	
-} // SetupGASInput
+} // OnRep_CurrentWeapons
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseHero::ClearGASInput()
-{
-	HeroData->ClearInput(this);
-	for (AFHS_BaseWeapon* Weapon : Weapons)
-	{
-		Weapon->ClearInput();
-	}
-	
-	bInputSet = false;
-	
-} // ClearGASInput
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-void AFHS_BaseHero::SetupHero()
+void AFHS_BaseHero::SetupWeapons()
 {
 	if (HeroData == nullptr)
-	{
-		return;
-	}
-	
-	HeroData->SetupGAS(ASC);
-	Mesh1P->SetSkeletalMeshAsset(HeroData->Hero1PMesh.LoadSynchronous());
-	GetMesh()->SetSkeletalMeshAsset(HeroData->Mesh.LoadSynchronous());
-	SetupGASInput();
-	SetupWeapon();
-	OnHeroReady.ExecuteIfBound();
-	
-} // SetupHero
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-void AFHS_BaseHero::SetupWeapon()
-{
-	// Only spawn on server, the weapons will set themselves on BeginPlay;
-	if (!HasAuthority() || HeroData == nullptr)
 	{
 		return;
 	}
@@ -164,22 +134,23 @@ void AFHS_BaseHero::SetupWeapon()
 	const int32 WeaponsToSetNum = FMath::Min(Weapons.Num(), WeaponsData.Num());
 	for (int32 i = 0; i < WeaponsToSetNum; ++i)
 	{
-		Weapons[i]->SetWeaponData(WeaponsData[i].LoadSynchronous()); // multinet
+		Weapons[i]->SetWeaponData(WeaponsData[i].LoadSynchronous());
+		Weapons[i]->SetMainWeapon(false);
 	}
 	
 	const int32 WeaponsToSpawnNum = WeaponsData.Num() - Weapons.Num();
-	if (WeaponsToSpawnNum == 0)
-	{
-		return;
-	}
 
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.Owner = this;
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	
 	// Need to spawn more
 	for (int32 i = WeaponsToSetNum; i < WeaponsToSetNum + WeaponsToSpawnNum; ++i)
 	{
-		Weapons.Add(GetWorld()->SpawnActorDeferred<AFHS_BaseWeapon>(AFHS_BaseWeapon::StaticClass(),
-		                                                             FTransform::Identity, this));
-		Weapons[i]->InitSpawnDeferred(this, WeaponsData[i].LoadSynchronous());
-		UGameplayStatics::FinishSpawningActor(Weapons[i], FTransform::Identity);
+		Weapons.Add(GetWorld()->SpawnActor<AFHS_BaseWeapon>(SpawnParameters));
+		Weapons[i]->SetWeaponData(WeaponsData[i].LoadSynchronous());
+		Weapons[i]->SetHeroOwner(this);
+		Weapons[i]->SetMainWeapon(false);
 	}
 
 	// Remove if we don't need them
@@ -189,24 +160,62 @@ void AFHS_BaseHero::SetupWeapon()
 		Weapons[i]->Destroy();
 		Weapons.RemoveAt(i);
 	}
+
+	// Update current weapon
+	CurrentWeapon = nullptr;
+	if (Weapons.IsValidIndex(0))
+	{
+		CurrentWeapon = Weapons[0];
+		CurrentWeapon->SetMainWeapon(true);
+	}
+
+	OnRep_CurrentWeapon();
 	
-} // SetupWeapon
+} // SetupWeaponMesh
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseHero::SetupMeshes()
+{
+	if (HeroData == nullptr)
+	{
+		return;
+	}
+	
+	Mesh1P->SetSkeletalMeshAsset(HeroData->Hero1PMesh.LoadSynchronous());
+	GetMesh()->SetSkeletalMeshAsset(HeroData->Mesh.LoadSynchronous());
+	
+} // SetupMeshes
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseHero::SetupGASInput(bool bSetupInput)
+{
+	if (bSetupInput == bInputSet || HeroData == nullptr || InputComponent == nullptr)
+	{
+		return;
+	}
+	
+	bInputSet = bSetupInput;
+	if (bInputSet)
+	{
+		HeroData->SetupInput(ASC, this);
+	}
+	else
+	{
+		HeroData->ClearInput(ASC, this);
+	}
+	OnHeroInputChanged.Broadcast(bInputSet);
+	
+} // SetupGASInput
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 #pragma region FPS_Template
 
-void AFHS_BaseHero::SetHasRifle(bool bNewHasRifle)
+bool AFHS_BaseHero::GetHasRifle() const
 {
-	bHasRifle = bNewHasRifle;
-	
-} // SetHasRifle
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-bool AFHS_BaseHero::GetHasRifle()
-{
-	return bHasRifle;
+	return CurrentWeapon != nullptr;
 	
 } // GetHasRifle
 

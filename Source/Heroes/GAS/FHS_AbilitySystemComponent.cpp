@@ -1,6 +1,5 @@
 ﻿#include "FHS_AbilitySystemComponent.h"
 
-#include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "FHS_AbilitySet.h"
 #include "Net/UnrealNetwork.h"
@@ -17,8 +16,9 @@ UFHS_AbilitySystemComponent::UFHS_AbilitySystemComponent()
 
 void UFHS_AbilitySystemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	DOREPLIFETIME_CONDITION(UFHS_AbilitySystemComponent, NameTag, COND_SimulatedOnly );
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME_CONDITION(UFHS_AbilitySystemComponent, NameTag, COND_SimulatedOnly );
 	
 } // GetLifetimeReplicatedProps
 
@@ -81,6 +81,23 @@ void UFHS_AbilitySystemComponent::BindAbilitiesToInput(const UFHS_AbilitySet* Ab
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+void UFHS_AbilitySystemComponent::ClearInputs(UEnhancedInputComponent* EnhancedInput)
+{
+	if (EnhancedInput == nullptr)
+	{
+		return;
+	}
+
+	for (const FInputBindingHandle& InputBinding : AbilitiesBind)
+	{
+		EnhancedInput->RemoveBinding(InputBinding);
+	}
+	AbilitiesBind.Empty();
+	
+} // ClearInputs
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 void UFHS_AbilitySystemComponent::BindAbilityActivationToEnhancedInputComponent(
 	const UFHS_AbilitySet* AbilitySet, UEnhancedInputComponent* EnhancedInput)
 {
@@ -89,6 +106,8 @@ void UFHS_AbilitySystemComponent::BindAbilityActivationToEnhancedInputComponent(
 	// Same as the original func, reset ability bindings
 	bIsNetDirty = true;
 	GetBlockedAbilityBindings_Mutable().SetNumZeroed(Abilities.Num());
+
+	ClearInputs(EnhancedInput);
 	
 	for (const TPair<EFHS_AbilityCommand, FAbilityBindData>& Ability : AbilitySet->Abilities)
 	{
@@ -101,17 +120,18 @@ void UFHS_AbilitySystemComponent::BindAbilityActivationToEnhancedInputComponent(
 			continue;
 		}
 		
-		EnhancedInput->BindAction(InputAction, ETriggerEvent::Triggered, this,
-								   &UAbilitySystemComponent::AbilityLocalInputPressed, AbilityCommandIdx);
-		EnhancedInput->BindAction(InputAction, ETriggerEvent::Completed, this,
-								   &UAbilitySystemComponent::AbilityLocalInputReleased, AbilityCommandIdx);
+		AbilitiesBind.Add(EnhancedInput->BindAction(InputAction, ETriggerEvent::Triggered, this,
+								   &UAbilitySystemComponent::AbilityLocalInputPressed, AbilityCommandIdx));
+		AbilitiesBind.Add(EnhancedInput->BindAction(InputAction, ETriggerEvent::Completed, this,
+								   &UAbilitySystemComponent::AbilityLocalInputReleased, AbilityCommandIdx));
 	}
 	
 	if (const FAbilityBindData* ConfirmBind = Abilities.Find(EFHS_AbilityCommand::Ability_Confirm))
 	{
 		if (const TObjectPtr<UInputAction> ConfirmIA = ConfirmBind->AbilityInput.LoadSynchronous())
 		{
-			EnhancedInput->BindAction(ConfirmIA, ETriggerEvent::Triggered, this, &UAbilitySystemComponent::LocalInputConfirm);
+			AbilitiesBind.Add(EnhancedInput->BindAction(ConfirmIA, ETriggerEvent::Triggered, this,
+			                                            &UAbilitySystemComponent::LocalInputConfirm));
 		}
 	}
 	
@@ -119,7 +139,8 @@ void UFHS_AbilitySystemComponent::BindAbilityActivationToEnhancedInputComponent(
 	{
 		if (const TObjectPtr<UInputAction> CancelIA = CancelBind->AbilityInput.LoadSynchronous())
 		{
-			EnhancedInput->BindAction(CancelIA, ETriggerEvent::Triggered, this, &UAbilitySystemComponent::LocalInputCancel);
+			AbilitiesBind.Add(EnhancedInput->BindAction(CancelIA, ETriggerEvent::Triggered, this,
+			                                            &UAbilitySystemComponent::LocalInputCancel));
 		}
 	}
 	

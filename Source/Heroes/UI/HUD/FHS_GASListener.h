@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "AbilitySystemComponent.h"
 
+#include "AbilitySystemComponent.h"
 #include "FHS_GASListener.generated.h"
 
 class UAbilitySystemComponent;
@@ -18,8 +18,8 @@ class HEROES_API IFHS_GASListener
 
 public:
 	UFUNCTION(BlueprintNativeEvent)
-	void SetupWithGAS(UAbilitySystemComponent* HeroASC, const TArray<UAbilitySystemComponent*>& WeaponASCs);
+	void SetupWithGAS(UAbilitySystemComponent* ASC);
 	UFUNCTION(BlueprintNativeEvent)
-	void CleanFromGAS(UAbilitySystemComponent* ASC, const TArray<UAbilitySystemComponent*>& WeaponASCs);
+	void CleanFromGAS(UAbilitySystemComponent* ASC);
 	
 }; // IFHS_GASListener

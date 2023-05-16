@@ -11,10 +11,8 @@ class HEROES_API UFHS_UW_Attributes : public UUserWidget, public IFHS_GASListene
 	GENERATED_BODY()
 	
 public:
-	virtual void SetupWithGAS_Implementation(UAbilitySystemComponent* ASC,
-	                                         const TArray<UAbilitySystemComponent*>& WeaponASCs) override;
-	virtual void CleanFromGAS_Implementation(UAbilitySystemComponent* ASC,
-	                                         const TArray<UAbilitySystemComponent*>& WeaponASCs) override;
+	virtual void SetupWithGAS_Implementation(UAbilitySystemComponent* ASC) override;
+	virtual void CleanFromGAS_Implementation(UAbilitySystemComponent* ASC) override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GAS)

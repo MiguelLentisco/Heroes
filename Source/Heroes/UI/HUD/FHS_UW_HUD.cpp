@@ -6,35 +6,45 @@
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void UFHS_UW_HUD::SetupWithGAS_Implementation(UAbilitySystemComponent* ASC,
-                                              const TArray<UAbilitySystemComponent*>& WeaponASCs)
+void UFHS_UW_HUD::OnHeroInputChangedInput(UAbilitySystemComponent* ASC, bool bSet)
 {
 	if (ASC == nullptr)
 	{
 		return;
 	}
+
+	if (bSet)
+	{
+		IFHS_GASListener::Execute_SetupWithGAS(AttributesHUD, ASC);
+		IFHS_GASListener::Execute_SetupWithGAS(AbilitiesHUD, ASC);
+	}
+	else
+	{
+		IFHS_GASListener::Execute_CleanFromGAS(AttributesHUD, ASC);
+		IFHS_GASListener::Execute_CleanFromGAS(AbilitiesHUD, ASC);
+	}
 	
-	IFHS_GASListener::Execute_SetupWithGAS(AttributesHUD, ASC, WeaponASCs);
-	IFHS_GASListener::Execute_SetupWithGAS(AbilitiesHUD, ASC, WeaponASCs);
-	IFHS_GASListener::Execute_SetupWithGAS(WeaponHUD, ASC, WeaponASCs);
-	
-} // SetupWithGAS_Implementation
+} // OnHeroInputChangedInput
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void UFHS_UW_HUD::CleanFromGAS_Implementation(UAbilitySystemComponent* ASC,
-                                              const TArray<UAbilitySystemComponent*>& WeaponASCs)
+void UFHS_UW_HUD::OnHeroWeaponInputChangedInput(UAbilitySystemComponent* ASC, bool bSet)
 {
 	if (ASC == nullptr)
 	{
 		return;
 	}
+
+	if (bSet)
+	{
+		IFHS_GASListener::Execute_SetupWithGAS(WeaponHUD, ASC);
+	}
+	else
+	{
+		IFHS_GASListener::Execute_CleanFromGAS(WeaponHUD, ASC);
+	}
 	
-	IFHS_GASListener::Execute_CleanFromGAS(AttributesHUD, ASC, WeaponASCs);
-	IFHS_GASListener::Execute_CleanFromGAS(AbilitiesHUD, ASC, WeaponASCs);
-	IFHS_GASListener::Execute_CleanFromGAS(WeaponHUD, ASC, WeaponASCs);
-	
-} // CleanFromGAS_Implementation
+} // OnHeroWeaponInputChangedInput
 
 // ---------------------------------------------------------------------------------------------------------------------
 

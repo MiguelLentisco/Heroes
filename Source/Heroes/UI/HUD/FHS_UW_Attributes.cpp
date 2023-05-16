@@ -6,8 +6,7 @@
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void UFHS_UW_Attributes::SetupWithGAS_Implementation(UAbilitySystemComponent* ASC,
-                                                     const TArray<UAbilitySystemComponent*>& WeaponASCs)
+void UFHS_UW_Attributes::SetupWithGAS_Implementation(UAbilitySystemComponent* ASC)
 {
 	if (ASC == nullptr)
 	{
@@ -43,8 +42,7 @@ void UFHS_UW_Attributes::SetupWithGAS_Implementation(UAbilitySystemComponent* AS
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void UFHS_UW_Attributes::CleanFromGAS_Implementation(UAbilitySystemComponent* ASC,
-                                                     const TArray<UAbilitySystemComponent*>& WeaponASCs)
+void UFHS_UW_Attributes::CleanFromGAS_Implementation(UAbilitySystemComponent* ASC)
 {
 	if (ASC == nullptr)
 	{

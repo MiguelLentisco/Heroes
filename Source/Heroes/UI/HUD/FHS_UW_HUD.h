@@ -1,23 +1,21 @@
 ﻿#pragma once
 
-#include "FHS_GASListener.h"
 #include "Blueprint/UserWidget.h"
 #include "FHS_UW_HUD.generated.h"
 
 class UFHS_UW_Attributes;
 class UFHS_UW_Abilities;
 class UFHS_UW_Weapon;
+class UAbilitySystemComponent;
 
 UCLASS(Abstract)
-class UFHS_UW_HUD : public UUserWidget, public IFHS_GASListener
+class HEROES_API UFHS_UW_HUD : public UUserWidget
 {
 	GENERATED_BODY()
 	
 public:
-	virtual void SetupWithGAS_Implementation(UAbilitySystemComponent* ASC,
-	                                         const TArray<UAbilitySystemComponent*>& WeaponASCs) override;
-	virtual void CleanFromGAS_Implementation(UAbilitySystemComponent* ASC,
-	                                         const TArray<UAbilitySystemComponent*>& WeaponASCs) override;
+	void OnHeroInputChangedInput(UAbilitySystemComponent* ASC, bool bSet);
+	void OnHeroWeaponInputChangedInput(UAbilitySystemComponent* ASC, bool bSet);
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (BindWidget))

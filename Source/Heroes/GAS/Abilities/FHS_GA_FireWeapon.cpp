@@ -4,12 +4,12 @@
 #include "Heroes/GAS/FHS_GameplayTags.h"
 #include "Heroes/GAS/Attributes/FHS_Attributes_Weapon.h"
 #include "Heroes/GAS/Effects/FHS_GE_ApplyCooldown.h"
+#include "Heroes/Weapons/FHS_BaseProjectile.h"
 #include "Heroes/Weapons/FHS_BaseWeapon.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Cooldown_Ability_FireWeapon, TEXT("Cooldown.Ability.FireWeapon"));
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GameplayCue_Ability_FireWeapon, TEXT("GameplayCue.Ability.FireWeapon"));
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ UFHS_GA_FireWeapon::UFHS_GA_FireWeapon()
 	CooldownAttribute = UFHS_Attributes_Weapon::GetFireRateAttribute();
 	CooldownTags.AddTag(TAG_Cooldown_Ability_FireWeapon.GetTag());
 	
-	AttributeCosts = {{ UFHS_Attributes_Weapon::GetCurrentAmmoAttribute(), FScalableFloat(1) }};
+	AttributeCosts = {{ UFHS_Attributes_Weapon::GetCurrentAmmoAttribute(), FScalableFloat(-1) }};
 	
 } // UFHS_GA_FireWeapon
 
@@ -49,16 +49,17 @@ void UFHS_GA_FireWeapon::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 		return;
 	}
 	
-	Weapon->PrimaryFire();
-	
+	Weapon->PrimaryFire(ProjectileClass.LoadSynchronous(), MuzzleOffset); // Server
+
+	// PlaySound
 	FGameplayCueParameters CueParameters;
 	CueParameters.Instigator = Weapon;
 	CueParameters.Location = Weapon->GetActorLocation();
-	ActorInfo->AbilitySystemComponent->ExecuteGameplayCue(TAG_GameplayCue_Ability_FireWeapon.GetTag(), CueParameters);
+	ActorInfo->AbilitySystemComponent->ExecuteGameplayCue(SoundGCTag, CueParameters);
 	
-	Weapon->PlayFireMontage();
+	Weapon->PlayFireMontage(FireAnimation.LoadSynchronous()); // Netcode
 	
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 	
 } // ActivateAbility
 

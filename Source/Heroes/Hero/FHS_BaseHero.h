@@ -20,9 +20,10 @@ class USoundBase;
 class UInputMappingContext;
 class UInputAction;
 
-DECLARE_DELEGATE(FHeroChangedStatus);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnMainWeaponChanged, AFHS_BaseWeapon*);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnHeroInputChanged, bool);
 
-UCLASS(config=Game)
+UCLASS()
 class HEROES_API AFHS_BaseHero : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
@@ -30,53 +31,51 @@ class HEROES_API AFHS_BaseHero : public ACharacter, public IAbilitySystemInterfa
 public:
 	AFHS_BaseHero();
 
+	FOnHeroInputChanged OnHeroInputChanged;
+	FOnMainWeaponChanged OnMainWeaponChanged;
+	
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	AFHS_BaseWeapon* GetCurrentWeapon() const { return CurrentWeapon; }
+	bool IsInputSet() const { return bInputSet; }
+	
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	virtual void BeginPlay() override;
 
-	FHeroChangedStatus OnHeroReady;
-	FHeroChangedStatus OnHeroCleared;
-
-	TArray<AFHS_BaseWeapon*> GetWeapons() const { return Weapons; }
-	void GetWeaponUSCs(TArray<UAbilitySystemComponent*>& WeaponUSCs) const;
-
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	
+	UFUNCTION(Server, Reliable)
 	void SetHeroData(UFHS_HeroData* NewHeroData);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GAS)
 	TObjectPtr<UFHS_AbilitySystemComponent> ASC;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Data)
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = Hero, ReplicatedUsing = "OnRep_HeroData")
 	TObjectPtr<UFHS_HeroData> HeroData;
 
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Data)
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Hero, ReplicatedUsing = "OnRep_CurrentWeapon")
+	TObjectPtr<AFHS_BaseWeapon> CurrentWeapon;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Hero)
 	TArray<TObjectPtr<AFHS_BaseWeapon>> Weapons;
-	
+
 	bool bInputSet = false;
 	
-	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
-
-	void SetupGASInput();
-	void ClearGASInput();
+	UFUNCTION()
+	void OnRep_HeroData(UFHS_HeroData* PreviousData);
+	UFUNCTION()
+	void OnRep_CurrentWeapon();
 	
-	void SetupHero();
-	void SetupWeapon();
+	void SetupWeapons();
+	void SetupMeshes();
+
+	void SetupGASInput(bool bSetupInput);
 
 #pragma region FPS_Template
 
 public:
-	/** Bool for AnimBP to switch to another animation set */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
-	bool bHasRifle = false;
-
-	/** Setter to set the bool */
-	UFUNCTION(BlueprintCallable, Category = Weapon)
-	void SetHasRifle(bool bNewHasRifle);
-
 	/** Getter for the bool */
 	UFUNCTION(BlueprintCallable, Category = Weapon)
-	bool GetHasRifle();
+	bool GetHasRifle() const;
 
 	/** Returns Mesh1P subobject **/
 	TObjectPtr<USkeletalMeshComponent> GetMesh1P() const { return Mesh1P; }

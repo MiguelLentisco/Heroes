@@ -1,7 +1,6 @@
 ﻿#include "FHS_PlayerController.h"
 
 #include "Heroes/Hero/FHS_BaseHero.h"
-#include "Heroes/UI/HUD/FHS_HUD.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -15,62 +14,24 @@ void AFHS_PlayerController::OnPossess(APawn* InPawn)
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_PlayerController::AcknowledgePossession(APawn* P)
+void AFHS_PlayerController::BeginPlay()
 {
-	Super::AcknowledgePossession(P);
+	Super::BeginPlay();
 
-	if (GetNetMode() < NM_Client && IsRunningDedicatedServer())
-	{
-		return;
-	}
-
-	auto* Hero = Cast<AFHS_BaseHero>(P);
-	if (Hero == nullptr)
+	if (HasAuthority() && IsRunningDedicatedServer())
 	{
 		return;
 	}
 	
-	Hero->OnHeroReady.BindUObject(this, &AFHS_PlayerController::SetupHUD);
-	SetupHUD();
+	const auto* Hero = Cast<AFHS_BaseHero>(GetPawn());
+	if (Hero == nullptr )
+	{
+		return;
+	}
+
 	
-} // AcknowledgePossession
+} // BeginPlay
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_PlayerController::SetupHUD()
-{
-	const auto* Hero = Cast<AFHS_BaseHero>(GetPawn());
-	AFHS_HUD* HUD = GetHUD<AFHS_HUD>();
-	if (Hero == nullptr || HUD == nullptr)
-	{
-		return;
-	}
-
-	TArray<UAbilitySystemComponent*> WeaponASCs;
-	Hero->GetWeaponUSCs(WeaponASCs);
-	
-	HUD->CreateHUD();
-	IFHS_GASListener::Execute_SetupWithGAS(HUD, Hero->GetAbilitySystemComponent(), WeaponASCs);
-	
-} // SetupHUD
-
-// ------------------------------ ---------------------------------------------------------------------------------------
-
-void AFHS_PlayerController::ClearHUD()
-{
-	const auto* Hero = Cast<AFHS_BaseHero>(GetPawn());
-	AFHS_HUD* HUD = GetHUD<AFHS_HUD>();
-	if (Hero == nullptr || HUD == nullptr)
-	{
-		return;
-	}
-
-	TArray<UAbilitySystemComponent*> WeaponASCs;
-	Hero->GetWeaponUSCs(WeaponASCs);
-	
-	IFHS_GASListener::Execute_CleanFromGAS(HUD, Hero->GetAbilitySystemComponent(), WeaponASCs);
-	
-} // ClearHUD
-
-// ---------------------------------------------------------------------------------------------------------------------
 

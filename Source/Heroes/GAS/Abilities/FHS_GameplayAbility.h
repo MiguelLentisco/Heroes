@@ -19,6 +19,8 @@ protected:
 	TMap<FGameplayAttribute, FScalableFloat> AttributeCosts;
 	
 	virtual UGameplayEffect* GetCostGameplayEffect() const override;
+	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	                       const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
 #pragma endregion // Costs
 

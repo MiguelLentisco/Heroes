@@ -1,5 +1,6 @@
 ﻿#include "FHS_AbilityMeshData.h"
 
+#include "EnhancedInputComponent.h"
 #include "InputMappingContext.h"
 #include "EnhancedInputSubsystems.h"
 #include "Heroes/GAS/FHS_AbilitySet.h"
@@ -15,12 +16,15 @@ void UFHS_AbilityMeshData::SetupGAS(UFHS_AbilitySystemComponent* ASC)
 	}
 
 	ASC->Clear();
+	
 	ASC->SetNameTag(Name);
 	ASC->AddLooseGameplayTag(Name);
+	
 	for (const FAttributeDefaults& Attribute : Attributes)
 	{
 		ASC->InitStats(Attribute.Attributes, Attribute.DefaultStartingTable);
 	}
+	
 	ASC->GiveAbilities(AbilitySet.LoadSynchronous());
 	
 } // SetupGAS
@@ -60,12 +64,14 @@ void UFHS_AbilityMeshData::SetupInput(UFHS_AbilitySystemComponent* ASC, APawn* P
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void UFHS_AbilityMeshData::ClearInput(APawn* Pawn)
+void UFHS_AbilityMeshData::ClearInput(UFHS_AbilitySystemComponent* ASC, APawn* Pawn)
 {
-	if (Pawn == nullptr)
+	if (ASC == nullptr || Pawn == nullptr)
 	{
 		return;
 	}
+
+	ASC->ClearInputs(Cast<UEnhancedInputComponent>(Pawn->InputComponent));
 
 	const auto* PC = Pawn->GetController<APlayerController>();
 	if (PC == nullptr)
@@ -84,6 +90,7 @@ void UFHS_AbilityMeshData::ClearInput(APawn* Pawn)
 	{
 		return;
 	}
+	
 	Subsystem->RemoveMappingContext(AbilitySetLoaded->InputMappingContext.LoadSynchronous());
 	
 } // ClearInput

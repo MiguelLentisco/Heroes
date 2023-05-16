@@ -8,15 +8,13 @@
 class UGameplayAbility;
 
 UCLASS(Abstract)
-class UFHS_UW_Ability : public UUserWidget, public IFHS_GASListener
+class HEROES_API UFHS_UW_Ability : public UUserWidget, public IFHS_GASListener
 {
 	GENERATED_BODY()
 	
 public:
-	virtual void SetupWithGAS_Implementation(UAbilitySystemComponent* ASC,
-	                                         const TArray<UAbilitySystemComponent*>& WeaponASCs) override;
-	virtual void CleanFromGAS_Implementation(UAbilitySystemComponent* ASC,
-	                                         const TArray<UAbilitySystemComponent*>& WeaponASCs) override;
+	virtual void SetupWithGAS_Implementation(UAbilitySystemComponent* ASC) override;
+	virtual void CleanFromGAS_Implementation(UAbilitySystemComponent* ASC) override;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GAS)
