@@ -2,6 +2,7 @@
 
 #include "FHS_BaseProjectile.h"
 #include "Heroes/Data/FHS_AbilityMeshData.h"
+#include "Heroes/GAS/FHS_AbilitySet.h"
 #include "Heroes/GAS/FHS_AbilitySystemComponent.h"
 #include "Heroes/Hero/FHS_BaseHero.h"
 #include "Net/UnrealNetwork.h"
@@ -15,18 +16,7 @@ AFHS_BaseWeapon::AFHS_BaseWeapon()
 	Mesh->CastShadow = false;
 	SetRootComponent(Mesh);
 	
-	ASC = CreateDefaultSubobject<UFHS_AbilitySystemComponent>(TEXT("GAS"));
-	ASC->SetIsReplicated(true);
-	
 } // AFHS_BaseWeapon
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-UAbilitySystemComponent* AFHS_BaseWeapon::GetAbilitySystemComponent() const
-{
-	return ASC;
-	
-} // GetAbilitySystemComponent
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -51,7 +41,11 @@ void AFHS_BaseWeapon::SetHeroOwner(AFHS_BaseHero* NewHero)
 
 	HeroOwner = NewHero;
 	OnRep_HeroOwner();
-	SetAutonomousProxy(true);
+
+	if (WeaponData != nullptr)
+	{
+		WeaponData->SetupGAS(HeroOwner->GetFHSAbilitySystemComponent(), false);
+	}
 	
 } // SetHeroOwner_Implementation
 
@@ -59,14 +53,17 @@ void AFHS_BaseWeapon::SetHeroOwner(AFHS_BaseHero* NewHero)
 
 void AFHS_BaseWeapon::SetWeaponData(UFHS_AbilityMeshData* NewData)
 {
-	if (!HasAuthority() || NewData == nullptr || NewData == WeaponData)
+	if (!HasAuthority() || NewData == nullptr)
 	{
 		return;
 	}
+
+	// If data change then we are not longer the main weapon
+	SetMainWeapon(false);
 	
 	UFHS_AbilityMeshData* OldData = NewData;
 	WeaponData = NewData;
-	WeaponData->SetupGAS(ASC);
+	InitGAS();
 	OnRep_WeaponData(OldData);
 	
 } // SetWeaponData
@@ -81,6 +78,7 @@ void AFHS_BaseWeapon::SetMainWeapon(bool bNewMainWeapon)
 	}
 	
 	bMainWeapon = bNewMainWeapon;
+	ChangeAbilityStatus();
 	OnRep_bMainWeapon();
 	
 } // SetMainWeapon
@@ -97,11 +95,11 @@ void AFHS_BaseWeapon::SetupInput(bool bEnable)
 	bInputSet = bEnable;
 	if (bInputSet)
 	{
-		WeaponData->SetupInput(ASC, HeroOwner);
+		WeaponData->SetupInput(HeroOwner->GetFHSAbilitySystemComponent(), HeroOwner);
 	}
 	else
 	{
-		WeaponData->ClearInput(ASC, HeroOwner);
+		WeaponData->ClearInput(HeroOwner->GetFHSAbilitySystemComponent(), HeroOwner);
 	}
 	OnWeaponInputChanged.Broadcast(bInputSet);
 	
@@ -137,7 +135,7 @@ void AFHS_BaseWeapon::PrimaryFire(const TSubclassOf<AFHS_BaseProjectile>& Projec
 	}
 	
 	Bullet->SetInstigator(HeroOwner);
-	Bullet->SetInstigatorUSC(ASC);
+	Bullet->SetInstigatorUSC(HeroOwner->GetAbilitySystemComponent());
 	
 } // PrimaryFire
 
@@ -178,6 +176,7 @@ void AFHS_BaseWeapon::OnRep_WeaponData(UFHS_AbilityMeshData* OldWeaponData)
 
 void AFHS_BaseWeapon::OnRep_HeroOwner()
 {
+	InitGAS();
 	AttachToHero();
 	SetupInput(true);
 	
@@ -191,6 +190,45 @@ void AFHS_BaseWeapon::OnRep_bMainWeapon()
 	SetupInput(bMainWeapon);
 	
 } // OnRep_bMainWeapon
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseWeapon::InitGAS()
+{
+	if (HeroOwner == nullptr || WeaponData == nullptr)
+	{
+		return;
+	}
+
+	UAbilitySystemComponent* ASC = HeroOwner->GetAbilitySystemComponent();
+	ASC->AddReplicatedLooseGameplayTag(WeaponData->Name);
+	for (const FAttributeDefaults& Attribute : WeaponData->Attributes)
+	{
+		ASC->InitStats(Attribute.Attributes, Attribute.DefaultStartingTable);
+	}
+	
+} // InitGAS
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseWeapon::ChangeAbilityStatus()
+{
+	if (HeroOwner == nullptr || WeaponData == nullptr)
+	{
+		return;
+	}
+
+	UFHS_AbilitySet* AbilitySet = WeaponData->AbilitySet.LoadSynchronous();
+	if (bMainWeapon)
+	{
+		HeroOwner->GetFHSAbilitySystemComponent()->GiveAbilities(AbilitySet);
+	}
+	else
+	{
+		HeroOwner->GetFHSAbilitySystemComponent()->RemoveAbilities(AbilitySet);
+	}
+	
+} // ChangeAbilityStatus
 
 // ---------------------------------------------------------------------------------------------------------------------
 

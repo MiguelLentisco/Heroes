@@ -8,17 +8,20 @@
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void UFHS_AbilityMeshData::SetupGAS(UFHS_AbilitySystemComponent* ASC)
+void UFHS_AbilityMeshData::SetupGAS(UFHS_AbilitySystemComponent* ASC, bool bClearData)
 {
 	if (ASC == nullptr || !ASC->GetOwner()->HasAuthority())
 	{
 		return;
 	}
 
-	ASC->Clear();
+	if (bClearData)
+	{
+		ASC->Clear();
+		ASC->SetNameTag(Name);
+	}
 	
-	ASC->SetNameTag(Name);
-	ASC->AddLooseGameplayTag(Name);
+	ASC->AddReplicatedLooseGameplayTag(Name);
 	
 	for (const FAttributeDefaults& Attribute : Attributes)
 	{
@@ -57,8 +60,11 @@ void UFHS_AbilityMeshData::SetupInput(UFHS_AbilitySystemComponent* ASC, APawn* P
 	{
 		return;
 	}
-	
-	Subsystem->AddMappingContext(AbilitySetLoaded->InputMappingContext.LoadSynchronous(), AbilitySet->InputPriority);
+
+	FModifyContextOptions ModifyContextOptions;
+	ModifyContextOptions.bForceImmediately = true;
+	Subsystem->AddMappingContext(AbilitySetLoaded->InputMappingContext.LoadSynchronous(), AbilitySet->InputPriority,
+	                             ModifyContextOptions);
 	
 } // SetupInput
 
@@ -71,7 +77,7 @@ void UFHS_AbilityMeshData::ClearInput(UFHS_AbilitySystemComponent* ASC, APawn* P
 		return;
 	}
 
-	ASC->ClearInputs(Cast<UEnhancedInputComponent>(Pawn->InputComponent));
+	ASC->ClearInputs(AbilitySet.LoadSynchronous(), Cast<UEnhancedInputComponent>(Pawn->InputComponent));
 
 	const auto* PC = Pawn->GetController<APlayerController>();
 	if (PC == nullptr)

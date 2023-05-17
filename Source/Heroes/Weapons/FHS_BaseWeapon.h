@@ -11,7 +11,7 @@ class AFHS_BaseProjectile;
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponInputChanged, bool);
 
 UCLASS()
-class HEROES_API AFHS_BaseWeapon : public AActor, public IAbilitySystemInterface
+class HEROES_API AFHS_BaseWeapon : public AActor
 {
 	GENERATED_BODY()
 	
@@ -19,8 +19,7 @@ public:
 	AFHS_BaseWeapon();
 
 	FOnWeaponInputChanged OnWeaponInputChanged;
-
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	
 	bool IsInputSet() const { return bInputSet; }
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -39,9 +38,6 @@ public:
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USkeletalMeshComponent> Mesh;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UFHS_AbilitySystemComponent> ASC;
 	
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, ReplicatedUsing = "OnRep_WeaponData")
 	TObjectPtr<UFHS_AbilityMeshData> WeaponData;
@@ -52,6 +48,7 @@ protected:
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, ReplicatedUsing = "OnRep_bMainWeapon")
 	bool bMainWeapon = false;
 
+	bool bAbilitiesGranted = false;
 	bool bInputSet = false;
 
 	UFUNCTION()
@@ -61,6 +58,8 @@ protected:
 	UFUNCTION()
 	void OnRep_bMainWeapon();
 
+	void InitGAS();
+	void ChangeAbilityStatus();
 	void SetupWeaponMesh();
 	void AttachToHero();
 	

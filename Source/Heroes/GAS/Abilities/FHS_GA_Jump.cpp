@@ -6,8 +6,14 @@
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Name_Ability_Jump, TEXT("Name.Ability.Jump"));
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 UFHS_GA_Jump::UFHS_GA_Jump()
 {
+	AbilityTags.AddTag(TAG_Name_Ability_Jump.GetTag());
+	
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	ActivationBlockedTags.AddTag(TAG_Status_Stun.GetTag());
 	

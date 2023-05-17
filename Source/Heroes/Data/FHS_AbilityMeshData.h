@@ -25,7 +25,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GAS)
 	TSoftObjectPtr<UFHS_AbilitySet> AbilitySet;
 
-	void SetupGAS(UFHS_AbilitySystemComponent* ASC);
+	void SetupGAS(UFHS_AbilitySystemComponent* ASC, bool bClearData);
 	void SetupInput(UFHS_AbilitySystemComponent* ASC, APawn* Pawn);
 	void ClearInput(UFHS_AbilitySystemComponent* ASC, APawn* Pawn);
 	

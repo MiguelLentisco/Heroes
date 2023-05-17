@@ -23,6 +23,11 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	TWeakObjectPtr<UGameplayAbility> LinkedGA;
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetAbilityName(const FText& AbilityName);
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetKeyBindName(const FText& KeyBindName);
+
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = GAS)
 	void OnCooldownTagChanged(const FGameplayTag PoisonTag, int32 TagCount);
 	

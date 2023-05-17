@@ -36,19 +36,12 @@ void AFHS_HUD::CreateHUD()
 	MainHUD = CreateWidget<UFHS_UW_HUD, APlayerController*>(PlayerOwner, MainHUDClassLoaded);
 	MainHUD->AddToPlayerScreen();
 	MainHUD->SetVisibility(ESlateVisibility::Hidden);
+	
 	HeroSelector = CreateWidget<UFHS_UW_HeroSelector, APlayerController*>(PlayerOwner, HeroSelectorClassLoaded);
 	HeroSelector->AddToPlayerScreen();
 	HeroSelector->OnHeroSelected.BindUObject(this, &AFHS_HUD::OnHeroSelect);
-	bHeroSelectorOpened = true;
 
-	auto* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerOwner->InputComponent);
-	if (EnhancedInput == nullptr)
-	{
-		return;
-	}
-
-	EnhancedInput->BindAction(ToggleOpenHeroSelectorAction, ETriggerEvent::Triggered, this,
-	                          &AFHS_HUD::OpenHeroSelector, false);
+	OpenHeroSelector(true);
 	
 } // CreateHUD
 
@@ -87,6 +80,58 @@ void AFHS_HUD::BeginPlay()
 } // BeginPlay
 
 // ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_HUD::OnHeroInputChangedInput(bool bSet)
+{
+	MainHUD->SetVisibility(bSet ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed);
+
+	if (Hero != nullptr)
+	{
+		MainHUD->OnHeroInputChangedInput(Hero->GetAbilitySystemComponent(), bSet);
+	}
+	
+} // OnHeroInputChangedInput
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_HUD::OnHeroWeaponInputChangedInput(bool bSet)
+{
+	if (HeroCurrentWeapon == nullptr)
+	{
+		return;
+	}
+
+	MainHUD->OnHeroWeaponInputChangedInput(Hero->GetAbilitySystemComponent(), bSet);
+	
+} // OnHeroWeaponInputChangedInput
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_HUD::OnHeroCurrentWeaponChanged(AFHS_BaseWeapon* NewWeapon)
+{
+	if (HeroCurrentWeapon != nullptr)
+	{
+		HeroCurrentWeapon->OnWeaponInputChanged.RemoveAll(this);
+		OnHeroWeaponInputChangedInput(false);
+	}
+
+	HeroCurrentWeapon = NewWeapon;
+	if (HeroCurrentWeapon == nullptr)
+	{
+		return;
+	}
+
+	HeroCurrentWeapon->OnWeaponInputChanged.AddUObject(this, &AFHS_HUD::OnHeroWeaponInputChangedInput);
+	if (HeroCurrentWeapon->IsInputSet())
+	{
+		OnHeroWeaponInputChangedInput(true);
+	}
+	
+} // OnHeroCurrentWeaponChanged
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+#pragma region HeroSelector
 
 void AFHS_HUD::OpenHeroSelector(bool bForce)
 {
@@ -128,55 +173,7 @@ void AFHS_HUD::OnHeroSelect(UFHS_HeroData* HeroSelected)
 	
 } // OnHeroSelect
 
-// ---------------------------------------------------------------------------------------------------------------------
-
-void AFHS_HUD::OnHeroInputChangedInput(bool bSet)
-{
-	MainHUD->SetVisibility(bSet ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed);
-
-	if (Hero != nullptr)
-	{
-		MainHUD->OnHeroInputChangedInput(Hero->GetAbilitySystemComponent(), bSet);
-	}
-	
-} // OnHeroInputChangedInput
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-void AFHS_HUD::OnHeroWeaponInputChangedInput(bool bSet)
-{
-	if (HeroCurrentWeapon == nullptr)
-	{
-		return;
-	}
-
-	MainHUD->OnHeroWeaponInputChangedInput(HeroCurrentWeapon->GetAbilitySystemComponent(), bSet);
-	
-} // OnHeroWeaponInputChangedInput
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-void AFHS_HUD::OnHeroCurrentWeaponChanged(AFHS_BaseWeapon* NewWeapon)
-{
-	if (HeroCurrentWeapon != nullptr)
-	{
-		HeroCurrentWeapon->OnWeaponInputChanged.RemoveAll(this);
-		OnHeroWeaponInputChangedInput(false);
-	}
-
-	HeroCurrentWeapon = NewWeapon;
-	if (HeroCurrentWeapon == nullptr)
-	{
-		return;
-	}
-
-	HeroCurrentWeapon->OnWeaponInputChanged.AddUObject(this, &AFHS_HUD::OnHeroWeaponInputChangedInput);
-	if (HeroCurrentWeapon->IsInputSet())
-	{
-		OnHeroWeaponInputChangedInput(true);
-	}
-	
-} // OnHeroCurrentWeaponChanged
+#pragma endregion // HeroSelector
 
 // ---------------------------------------------------------------------------------------------------------------------
 

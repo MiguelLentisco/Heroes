@@ -9,14 +9,19 @@
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Name_Ability_Dash, TEXT("Name.Ability.Dash"));
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Cooldown_Ability_Dash, TEXT("Cooldown.Ability.Dash"));
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 UFHS_GA_Dash::UFHS_GA_Dash()
 {
+	AbilityTags.AddTag(TAG_Name_Ability_Dash.GetTag());
+	
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	ActivationBlockedTags.AddTag(TAG_Status_Stun.GetTag());
+	CancelAbilitiesWithTag.AddTag(TAG_Status_Reloading.GetTag());
+	
 	CooldownGameplayEffectClass = UFHS_GE_ApplyCooldown::StaticClass();
 	bUseScalarCooldown = true;
 	CooldownScalar = 5.f;

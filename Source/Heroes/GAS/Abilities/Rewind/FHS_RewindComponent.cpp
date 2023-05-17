@@ -1,5 +1,6 @@
 ﻿#include "FHS_RewindComponent.h"
 
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Heroes/GAS/Attributes/FHS_Attributes_CharacterCore.h"
 #include "Heroes/GAS/Attributes/FHS_Attributes_Weapon.h"
 #include "Heroes/Hero/FHS_BaseHero.h"
@@ -21,7 +22,7 @@ void UFHS_RewindComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (HeroASC == nullptr || WeaponASC == nullptr)
+	if (HeroASC == nullptr)
 	{
 		DestroyComponent();
 		return;
@@ -50,15 +51,7 @@ void UFHS_RewindComponent::StartRecording()
 		return;
 	}
 
-	const auto* WeaponI = Cast<IAbilitySystemInterface>(Hero->GetCurrentWeapon());
-	if (WeaponI == nullptr || WeaponI->GetAbilitySystemComponent() == nullptr)
-	{
-		DestroyComponent();
-		return;
-	}
-
 	HeroASC = Hero->GetAbilitySystemComponent();
-	WeaponASC = WeaponI->GetAbilitySystemComponent();
 	CurrentTime = 0.f;
 	
 	RecordData();
@@ -74,13 +67,14 @@ void UFHS_RewindComponent::Rewind()
 	GetOwner()->SetActorLocation(PastData->Position, false, nullptr, ETeleportType::TeleportPhysics);
 	GetOwner()->GetInstigatorController()->SetControlRotation(PastData->ControlRotation);
 	
-	for (const TPair<FGameplayAttribute, int32>& AttributeCurve : PastData->HeroAttributeCurves)
+	if (auto* Hero = Cast<ACharacter>(GetOwner()))
+	{
+		Hero->GetCharacterMovement()->Velocity = PastData->Velocity;
+	}
+	
+	for (const TPair<FGameplayAttribute, int32>& AttributeCurve : PastData->AttributesCurves)
 	{
 		HeroASC->SetNumericAttributeBase(AttributeCurve.Key, AttributeCurve.Value);
-	}
-	for (const TPair<FGameplayAttribute, int32>& AttributeCurve : PastData->WeaponAttributeCurves)
-	{
-		WeaponASC->SetNumericAttributeBase(AttributeCurve.Key, AttributeCurve.Value);
 	}
 	
 } // Rewind
@@ -94,11 +88,12 @@ void UFHS_RewindComponent::RecordData()
 	Data.Timestamp = CurrentTime;
 	Data.Position = GetOwner()->GetActorLocation();
 	Data.ControlRotation = GetOwner()->GetInstigatorController()->GetControlRotation();
+	Data.Velocity = GetOwner()->GetVelocity();
 	
 	const FGameplayAttribute HealthAttribute = UFHS_Attributes_CharacterCore::GetCurrentHealthAttribute();
-	Data.HeroAttributeCurves.FindOrAdd(HealthAttribute, HeroASC->GetNumericAttributeBase(HealthAttribute));
 	const FGameplayAttribute AmmoAttribute = UFHS_Attributes_Weapon::GetCurrentAmmoAttribute();
-	Data.WeaponAttributeCurves.FindOrAdd(AmmoAttribute, WeaponASC->GetNumericAttributeBase(AmmoAttribute));
+	Data.AttributesCurves.FindOrAdd(HealthAttribute, HeroASC->GetNumericAttributeBase(HealthAttribute));
+	Data.AttributesCurves.FindOrAdd(AmmoAttribute, HeroASC->GetNumericAttributeBase(AmmoAttribute));
 
 	RewindData.Enqueue(Data);
 	

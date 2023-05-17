@@ -23,5 +23,9 @@ protected:
 	void SetupReady();
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = GAS)
 	void OnCurrentAmmoChanged(FGameplayAttribute Attribute, float NewValue, float OldValue);
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = GAS)
+	void SetReloadingStatus(bool bReloading, float ReloadTime);
+	
+	void OnReloadingChanged(const FGameplayTag PoisonTag, int32 TagCount, UAbilitySystemComponent* ASC);
 	
 }; // UFHS_UW_Weapon

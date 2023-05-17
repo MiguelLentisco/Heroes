@@ -8,12 +8,12 @@ class UAbilitySystemComponent;
 struct HEROES_API FFHS_RewindData
 {
 	float Timestamp = 0.f;
-	
+
+	FVector Velocity = FVector::ZeroVector;
 	FVector Position = FVector::ZeroVector;
 	FRotator ControlRotation = FRotator::ZeroRotator;
 
-	TMap<FGameplayAttribute, int32> HeroAttributeCurves;
-	TMap<FGameplayAttribute, int32> WeaponAttributeCurves;
+	TMap<FGameplayAttribute, int32> AttributesCurves;
 	
 }; // FFHS_RewindData
 
@@ -36,9 +36,6 @@ public:
 protected:
 	UPROPERTY()
 	TWeakObjectPtr<UAbilitySystemComponent> HeroASC;
-
-	UPROPERTY()
-	TWeakObjectPtr<UAbilitySystemComponent> WeaponASC;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float RewindTime = 3.f;

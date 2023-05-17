@@ -42,9 +42,6 @@ protected:
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UInputAction> ToggleOpenHeroSelectorAction;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSoftClassPtr<UFHS_UW_HeroSelector> HeroSelectorClass;
 	UPROPERTY()
 	TObjectPtr<UFHS_UW_HeroSelector> HeroSelector;

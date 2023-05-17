@@ -8,12 +8,15 @@
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Name_Ability_Rewind, TEXT("Name.Ability.Rewind"));
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Cooldown_Ability_Rewind, TEXT("Cooldown.Ability.Rewind"));
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 UFHS_GA_Rewind::UFHS_GA_Rewind()
 {
+	AbilityTags.AddTag(TAG_Name_Ability_Rewind.GetTag());
+	
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 

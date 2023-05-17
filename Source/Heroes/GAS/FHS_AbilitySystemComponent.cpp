@@ -58,6 +58,28 @@ void UFHS_AbilitySystemComponent::GiveAbilities(UFHS_AbilitySet* AbilitySet)
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+void UFHS_AbilitySystemComponent::RemoveAbilities(UFHS_AbilitySet* AbilitySet)
+{
+	if (AbilitySet == nullptr)
+	{
+		return;
+	}
+	
+	for (const TPair<EFHS_AbilityCommand, FAbilityBindData>& Ability : AbilitySet->Abilities)
+	{
+		const UClass* AbilityClass = Ability.Value.AbilityClass.LoadSynchronous();
+		if (AbilityClass == nullptr)
+		{
+			continue;
+		}
+		
+		ClearAllAbilitiesWithInputID(static_cast<int32>(Ability.Key));
+	}
+	
+} // RemoveAbilities
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 void UFHS_AbilitySystemComponent::BindAbilitiesToInput(const UFHS_AbilitySet* AbilitySet, UInputComponent* Input)
 {
 	if (Input == nullptr)
@@ -81,18 +103,18 @@ void UFHS_AbilitySystemComponent::BindAbilitiesToInput(const UFHS_AbilitySet* Ab
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void UFHS_AbilitySystemComponent::ClearInputs(UEnhancedInputComponent* EnhancedInput)
+void UFHS_AbilitySystemComponent::ClearInputs(const UFHS_AbilitySet* AbilitySet, UEnhancedInputComponent* EnhancedInput)
 {
-	if (EnhancedInput == nullptr)
+	if (AbilitySet == nullptr || EnhancedInput == nullptr)
 	{
 		return;
 	}
 
-	for (const FInputBindingHandle& InputBinding : AbilitiesBind)
+	for (const TPair<EFHS_AbilityCommand, FAbilityBindData>& Ability : AbilitySet->Abilities)
 	{
-		EnhancedInput->RemoveBinding(InputBinding);
+		EnhancedInput->RemoveBinding(*AbilitiesBind[Ability.Key]);
+		AbilitiesBind.Remove(Ability.Key);
 	}
-	AbilitiesBind.Empty();
 	
 } // ClearInputs
 
@@ -106,8 +128,6 @@ void UFHS_AbilitySystemComponent::BindAbilityActivationToEnhancedInputComponent(
 	// Same as the original func, reset ability bindings
 	bIsNetDirty = true;
 	GetBlockedAbilityBindings_Mutable().SetNumZeroed(Abilities.Num());
-
-	ClearInputs(EnhancedInput);
 	
 	for (const TPair<EFHS_AbilityCommand, FAbilityBindData>& Ability : AbilitySet->Abilities)
 	{
@@ -120,9 +140,9 @@ void UFHS_AbilitySystemComponent::BindAbilityActivationToEnhancedInputComponent(
 			continue;
 		}
 		
-		AbilitiesBind.Add(EnhancedInput->BindAction(InputAction, ETriggerEvent::Triggered, this,
+		AbilitiesBind.Add(Ability.Key, &EnhancedInput->BindAction(InputAction, ETriggerEvent::Triggered, this,
 								   &UAbilitySystemComponent::AbilityLocalInputPressed, AbilityCommandIdx));
-		AbilitiesBind.Add(EnhancedInput->BindAction(InputAction, ETriggerEvent::Completed, this,
+		AbilitiesBind.Add(Ability.Key, &EnhancedInput->BindAction(InputAction, ETriggerEvent::Completed, this,
 								   &UAbilitySystemComponent::AbilityLocalInputReleased, AbilityCommandIdx));
 	}
 	
@@ -130,7 +150,8 @@ void UFHS_AbilitySystemComponent::BindAbilityActivationToEnhancedInputComponent(
 	{
 		if (const TObjectPtr<UInputAction> ConfirmIA = ConfirmBind->AbilityInput.LoadSynchronous())
 		{
-			AbilitiesBind.Add(EnhancedInput->BindAction(ConfirmIA, ETriggerEvent::Triggered, this,
+			AbilitiesBind.Add(EFHS_AbilityCommand::Ability_Confirm,
+			                  &EnhancedInput->BindAction(ConfirmIA, ETriggerEvent::Triggered, this,
 			                                            &UAbilitySystemComponent::LocalInputConfirm));
 		}
 	}
@@ -139,8 +160,9 @@ void UFHS_AbilitySystemComponent::BindAbilityActivationToEnhancedInputComponent(
 	{
 		if (const TObjectPtr<UInputAction> CancelIA = CancelBind->AbilityInput.LoadSynchronous())
 		{
-			AbilitiesBind.Add(EnhancedInput->BindAction(CancelIA, ETriggerEvent::Triggered, this,
-			                                            &UAbilitySystemComponent::LocalInputCancel));
+			AbilitiesBind.Add(EFHS_AbilityCommand::Ability_Cancel,
+			                  &EnhancedInput->BindAction(CancelIA, ETriggerEvent::Triggered, this,
+			                                             &UAbilitySystemComponent::LocalInputCancel));
 		}
 	}
 	

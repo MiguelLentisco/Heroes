@@ -1,6 +1,8 @@
 ﻿#include "FHS_UW_Ability.h"
 
 #include "AbilitySystemComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "Heroes/GAS/FHS_AbilitySystemComponent.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -26,18 +28,39 @@ void UFHS_UW_Ability::SetupWithGAS_Implementation(UAbilitySystemComponent* ASC)
 	}
 
 	LinkedGA = GAs[0];
-	const FGameplayTagContainer* CooldownTags = LinkedGA->GetCooldownTags();
-	if (CooldownTags == nullptr)
+
+	// Setup CD
+	if (const FGameplayTagContainer* CooldownTags = LinkedGA->GetCooldownTags())
 	{
-		return;
+		for (auto CooldownTag = CooldownTags->CreateConstIterator(); CooldownTag; ++CooldownTag)
+		{
+			ASC->RegisterGameplayTagEvent(*CooldownTag, EGameplayTagEventType::AnyCountChange).AddUObject(
+				this, &UFHS_UW_Ability::OnCooldownTagChanged);
+		}
 	}
 
-	for (auto CooldownTag = CooldownTags->CreateConstIterator(); CooldownTag; ++CooldownTag)
-	{
-		ASC->RegisterGameplayTagEvent(*CooldownTag, EGameplayTagEventType::AnyCountChange).AddUObject(
-			this, &UFHS_UW_Ability::OnCooldownTagChanged);
-	}
+	FString LeftAux, AbilityShortName;
+	LinkedGA->AbilityTags.First().ToString().Split(TEXT("."), &LeftAux, &AbilityShortName, ESearchCase::CaseSensitive,
+	                                               ESearchDir::FromEnd);
+	SetAbilityName(FText::FromString(AbilityShortName));
 
+	// Find key associated to this ability
+	if (auto* FHS_ASC = Cast<UFHS_AbilitySystemComponent>(ASC))
+	{
+		if (FEnhancedInputActionEventBinding* const* EnhancedInput = FHS_ASC->GetAbilitiesBind().Find(AbilityCommand))
+		{
+			const UInputAction* InputAction = (*EnhancedInput)->GetAction();
+			if (auto* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetOwningLocalPlayer()))
+			{
+				const TArray<FKey> Keys = Subsystem->QueryKeysMappedToAction(InputAction);
+				if (!Keys.IsEmpty())
+				{
+					SetKeyBindName(Keys[0].GetDisplayName());
+				}
+			}
+		}
+	}
+	
 	SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	
 } // SetupWithGAS_Implementation
@@ -50,19 +73,16 @@ void UFHS_UW_Ability::CleanFromGAS_Implementation(UAbilitySystemComponent* ASC)
 	{
 		return;
 	}
-
-	const FGameplayTagContainer* CooldownTags = LinkedGA->GetCooldownTags();
-	if (CooldownTags == nullptr)
+	
+	if (const FGameplayTagContainer* CooldownTags = LinkedGA->GetCooldownTags())
 	{
-		return;
+		for (auto CooldownTag = CooldownTags->CreateConstIterator(); CooldownTag; ++CooldownTag)
+		{
+			ASC->RegisterGameplayTagEvent(*CooldownTag, EGameplayTagEventType::AnyCountChange).RemoveAll(this);
+		}
 	}
 
-	for (auto CooldownTag = CooldownTags->CreateConstIterator(); CooldownTag; ++CooldownTag)
-	{
-		ASC->RegisterGameplayTagEvent(*CooldownTag, EGameplayTagEventType::AnyCountChange).RemoveAll(this);
-	}
-
-	LinkedGA = nullptr;
+	LinkedGA.Reset();
 	
 } // CleanFromGAS_Implementation
 

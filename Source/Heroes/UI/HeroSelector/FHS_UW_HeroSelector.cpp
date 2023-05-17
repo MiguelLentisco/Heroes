@@ -130,7 +130,7 @@ void UFHS_UW_HeroSelector::Create()
 	for (int32 i = 0; i < PerfectRoot; ++i)
 	{
 		HeroPanel->SetColumnFill(i, 1.f);
-		if ( i <= MaxRows)
+		if (i <= MaxRows)
 		{
 			HeroPanel->SetRowFill(i, 1.f);
 		}

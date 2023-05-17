@@ -71,7 +71,7 @@ void AFHS_BaseHero::BeginPlay()
 
 	if (HasAuthority() && HeroData != nullptr)
 	{
-		HeroData->SetupGAS(ASC);
+		HeroData->SetupGAS(ASC, true);
 		SetupWeapons();
 	}
 	
@@ -91,7 +91,7 @@ void AFHS_BaseHero::SetHeroData_Implementation(UFHS_HeroData* NewHeroData)
 	UFHS_HeroData* PreviousData = HeroData;
 	
 	HeroData = NewHeroData;
-	HeroData->SetupGAS(ASC);
+	HeroData->SetupGAS(ASC, true);
 	SetupWeapons();
 	OnRep_HeroData(PreviousData);
 	
@@ -135,7 +135,6 @@ void AFHS_BaseHero::SetupWeapons()
 	for (int32 i = 0; i < WeaponsToSetNum; ++i)
 	{
 		Weapons[i]->SetWeaponData(WeaponsData[i].LoadSynchronous());
-		Weapons[i]->SetMainWeapon(false);
 	}
 	
 	const int32 WeaponsToSpawnNum = WeaponsData.Num() - Weapons.Num();
@@ -148,9 +147,8 @@ void AFHS_BaseHero::SetupWeapons()
 	for (int32 i = WeaponsToSetNum; i < WeaponsToSetNum + WeaponsToSpawnNum; ++i)
 	{
 		Weapons.Add(GetWorld()->SpawnActor<AFHS_BaseWeapon>(SpawnParameters));
-		Weapons[i]->SetWeaponData(WeaponsData[i].LoadSynchronous());
 		Weapons[i]->SetHeroOwner(this);
-		Weapons[i]->SetMainWeapon(false);
+		Weapons[i]->SetWeaponData(WeaponsData[i].LoadSynchronous());
 	}
 
 	// Remove if we don't need them

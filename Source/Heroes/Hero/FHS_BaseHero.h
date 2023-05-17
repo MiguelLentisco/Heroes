@@ -35,6 +35,7 @@ public:
 	FOnMainWeaponChanged OnMainWeaponChanged;
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	UFHS_AbilitySystemComponent* GetFHSAbilitySystemComponent() const { return ASC; }
 	AFHS_BaseWeapon* GetCurrentWeapon() const { return CurrentWeapon; }
 	bool IsInputSet() const { return bInputSet; }
 	
