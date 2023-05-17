@@ -6,6 +6,7 @@ public class Heroes : ModuleRules
 {
 	public Heroes(ReadOnlyTargetRules Target) : base(Target)
 	{
+	
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[]
@@ -20,8 +21,9 @@ public class Heroes : ModuleRules
 			"GameplayTasks",
 			"GameplayTags",
 			"DeveloperSettings",
+			"SlateCore",
 			"UMG",
-
 		});
+		
 	}
 }

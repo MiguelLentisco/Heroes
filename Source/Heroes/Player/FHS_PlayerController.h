@@ -11,6 +11,8 @@ class HEROES_API AFHS_PlayerController : public APlayerController
 public:
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void BeginPlay() override;
-	
+
+protected:
+	void CreateHeroSelector();
 	
 }; // AFHS_PlayerController

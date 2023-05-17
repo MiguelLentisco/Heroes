@@ -1,8 +1,11 @@
 ﻿#include "FHS_HUD.h"
 
+#include "EnhancedInputComponent.h"
 #include "FHS_UW_HUD.h"
 #include "Blueprint/UserWidget.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Heroes/Hero/FHS_BaseHero.h"
+#include "Heroes/UI/HeroSelector/FHS_UW_HeroSelector.h"
 #include "Heroes/Weapons/FHS_BaseWeapon.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -23,16 +26,29 @@ void AFHS_HUD::CreateHUD()
 	}
 	
 	UClass* MainHUDClassLoaded = MainHUDClass.LoadSynchronous();
-	if (PlayerOwner == nullptr || MainHUDClassLoaded == nullptr)
+	UClass* HeroSelectorClassLoaded = HeroSelectorClass.LoadSynchronous();
+	if (PlayerOwner == nullptr || MainHUDClassLoaded == nullptr || HeroSelectorClassLoaded == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[AFHS_HUD - BeginPlay] Could create MainHUD due to PC or HUDClass null"))
 		return;
 	}
 
 	MainHUD = CreateWidget<UFHS_UW_HUD, APlayerController*>(PlayerOwner, MainHUDClassLoaded);
-	ensureAlwaysMsgf(MainHUD != nullptr, TEXT("MainHUD couldn't be created"));
 	MainHUD->AddToPlayerScreen();
-	MainHUD->SetVisibility(ESlateVisibility::Collapsed);
+	MainHUD->SetVisibility(ESlateVisibility::Hidden);
+	HeroSelector = CreateWidget<UFHS_UW_HeroSelector, APlayerController*>(PlayerOwner, HeroSelectorClassLoaded);
+	HeroSelector->AddToPlayerScreen();
+	HeroSelector->OnHeroSelected.BindUObject(this, &AFHS_HUD::OnHeroSelect);
+	bHeroSelectorOpened = true;
+
+	auto* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerOwner->InputComponent);
+	if (EnhancedInput == nullptr)
+	{
+		return;
+	}
+
+	EnhancedInput->BindAction(ToggleOpenHeroSelectorAction, ETriggerEvent::Triggered, this,
+	                          &AFHS_HUD::OpenHeroSelector, false);
 	
 } // CreateHUD
 
@@ -69,6 +85,48 @@ void AFHS_HUD::BeginPlay()
 	OnHeroCurrentWeaponChanged(Hero->GetCurrentWeapon());
 	
 } // BeginPlay
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_HUD::OpenHeroSelector(bool bForce)
+{
+	if (!bForce && !bCanToggleHeroSelector)
+	{
+		return;
+	}
+
+	bHeroSelectorOpened = !bHeroSelectorOpened;
+
+	APlayerController* Controller = GetOwningPlayerController();
+	if (bHeroSelectorOpened)
+	{
+		HeroSelector->SetVisibility(ESlateVisibility::Visible);
+		UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(Controller, HeroSelector);
+		Controller->SetShowMouseCursor(true);
+	}
+	else
+	{
+		HeroSelector->SetVisibility(ESlateVisibility::Collapsed);
+		UWidgetBlueprintLibrary::SetInputMode_GameOnly(Controller);
+		Controller->SetShowMouseCursor(false);
+	}
+	
+} // OpenHeroSelector
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_HUD::OnHeroSelect(UFHS_HeroData* HeroSelected)
+{
+	if (HeroSelected == nullptr)
+	{
+		return;
+	}
+
+	Hero->SetHeroData(HeroSelected);
+	OpenHeroSelector(true);
+	MainHUD->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	
+} // OnHeroSelect
 
 // ---------------------------------------------------------------------------------------------------------------------
 

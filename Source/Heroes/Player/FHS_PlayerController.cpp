@@ -23,11 +23,6 @@ void AFHS_PlayerController::BeginPlay()
 		return;
 	}
 	
-	const auto* Hero = Cast<AFHS_BaseHero>(GetPawn());
-	if (Hero == nullptr )
-	{
-		return;
-	}
 
 	
 } // BeginPlay

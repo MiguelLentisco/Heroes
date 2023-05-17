@@ -69,7 +69,7 @@ void AFHS_BaseHero::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HasAuthority())
+	if (HasAuthority() && HeroData != nullptr)
 	{
 		HeroData->SetupGAS(ASC);
 		SetupWeapons();
