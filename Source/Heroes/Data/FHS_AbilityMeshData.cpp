@@ -8,32 +8,6 @@
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void UFHS_AbilityMeshData::SetupGAS(UFHS_AbilitySystemComponent* ASC, bool bClearData)
-{
-	if (ASC == nullptr || !ASC->GetOwner()->HasAuthority())
-	{
-		return;
-	}
-
-	if (bClearData)
-	{
-		ASC->Clear();
-		ASC->SetNameTag(Name);
-	}
-	
-	ASC->AddReplicatedLooseGameplayTag(Name);
-	
-	for (const FAttributeDefaults& Attribute : Attributes)
-	{
-		ASC->InitStats(Attribute.Attributes, Attribute.DefaultStartingTable);
-	}
-	
-	ASC->GiveAbilities(AbilitySet.LoadSynchronous());
-	
-} // SetupGAS
-
-// ---------------------------------------------------------------------------------------------------------------------
-
 void UFHS_AbilityMeshData::SetupInput(UFHS_AbilitySystemComponent* ASC, APawn* Pawn)
 {
 	if (Pawn == nullptr || ASC == nullptr || Pawn->InputComponent == nullptr)

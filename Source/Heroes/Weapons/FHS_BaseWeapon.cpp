@@ -40,12 +40,8 @@ void AFHS_BaseWeapon::SetHeroOwner(AFHS_BaseHero* NewHero)
 	}
 
 	HeroOwner = NewHero;
+	InitGAS();
 	OnRep_HeroOwner();
-
-	if (WeaponData != nullptr)
-	{
-		WeaponData->SetupGAS(HeroOwner->GetFHSAbilitySystemComponent(), false);
-	}
 	
 } // SetHeroOwner_Implementation
 
@@ -176,7 +172,6 @@ void AFHS_BaseWeapon::OnRep_WeaponData(UFHS_AbilityMeshData* OldWeaponData)
 
 void AFHS_BaseWeapon::OnRep_HeroOwner()
 {
-	InitGAS();
 	AttachToHero();
 	SetupInput(true);
 	
@@ -205,6 +200,10 @@ void AFHS_BaseWeapon::InitGAS()
 	for (const FAttributeDefaults& Attribute : WeaponData->Attributes)
 	{
 		ASC->InitStats(Attribute.Attributes, Attribute.DefaultStartingTable);
+	}
+	for (const TSoftClassPtr<UGameplayEffect>& GEClass : WeaponData->InitialEffects)
+	{
+		ASC->BP_ApplyGameplayEffectToSelf(GEClass.LoadSynchronous(), 1, ASC->MakeEffectContext());
 	}
 	
 } // InitGAS

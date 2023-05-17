@@ -6,6 +6,8 @@
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Heroes/Data/FHS_AbilityMeshData.h"
+#include "Heroes/GAS/FHS_AbilitySet.h"
 #include "Heroes/GAS/FHS_AbilitySystemComponent.h"
 #include "Heroes/GAS/Attributes/FHS_Attributes_CharacterCore.h"
 #include "Heroes/Weapons/FHS_BaseWeapon.h"
@@ -71,7 +73,7 @@ void AFHS_BaseHero::BeginPlay()
 
 	if (HasAuthority() && HeroData != nullptr)
 	{
-		HeroData->SetupGAS(ASC, true);
+		SetupGAS();
 		SetupWeapons();
 	}
 	
@@ -91,7 +93,7 @@ void AFHS_BaseHero::SetHeroData_Implementation(UFHS_HeroData* NewHeroData)
 	UFHS_HeroData* PreviousData = HeroData;
 	
 	HeroData = NewHeroData;
-	HeroData->SetupGAS(ASC, true);
+	SetupGAS();
 	SetupWeapons();
 	OnRep_HeroData(PreviousData);
 	
@@ -118,6 +120,33 @@ void AFHS_BaseHero::OnRep_CurrentWeapon()
 	OnMainWeaponChanged.Broadcast(CurrentWeapon);
 	
 } // OnRep_CurrentWeapons
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseHero::SetupGAS()
+{
+	if (HeroData == nullptr)
+	{
+		return;
+	}
+
+	// Reset all
+	ASC->Clear();
+	SetupGASInput(false);
+	
+	ASC->SetNameTag(HeroData->Name);
+	for (const FAttributeDefaults& Attribute : HeroData->Attributes)
+	{
+		ASC->InitStats(Attribute.Attributes, Attribute.DefaultStartingTable);
+	}
+	ASC->GiveAbilities(HeroData->AbilitySet.LoadSynchronous());
+
+	for (const TSoftClassPtr<UGameplayEffect>& GEClass : HeroData->InitialEffects)
+	{
+		ASC->BP_ApplyGameplayEffectToSelf(GEClass.LoadSynchronous(), 1, ASC->MakeEffectContext());
+	}
+	
+} // SetupGAS
 
 // ---------------------------------------------------------------------------------------------------------------------
 

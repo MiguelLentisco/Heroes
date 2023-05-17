@@ -8,13 +8,9 @@
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Name_Ability_FireWeapon, TEXT("Name.Ability.Reload"));
-
-// ---------------------------------------------------------------------------------------------------------------------
-
 UFHS_GA_Reload::UFHS_GA_Reload()
 {
-	AbilityTags.AddTag(TAG_Name_Ability_FireWeapon.GetTag());
+	AbilityTags.AddTag(TAG_Name_Ability_Reload.GetTag());
 	ActivationOwnedTags.AddTag(TAG_Status_Reloading.GetTag());
 
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;

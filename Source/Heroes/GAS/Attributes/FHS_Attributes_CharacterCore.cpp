@@ -51,6 +51,21 @@ void UFHS_Attributes_CharacterCore::GetLifetimeReplicatedProps(TArray<FLifetimeP
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+void UFHS_Attributes_CharacterCore::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
+{
+	if (Attribute == GetCurrentHealthAttribute())
+	{
+		NewValue = FMath::Clamp(NewValue, 0.f, MaxHealth.GetCurrentValue());
+	}
+	else if (Attribute == GetCurrentUltimatePowerAttribute())
+	{
+		NewValue = FMath::Clamp(NewValue, 0.f, MaxUltimatePower.GetCurrentValue());
+	}
+	
+} // PreAttributeChange
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 void UFHS_Attributes_CharacterCore::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	ClampAttributes(Data.EvaluatedData.Attribute);
@@ -59,33 +74,16 @@ void UFHS_Attributes_CharacterCore::PostGameplayEffectExecute(const FGameplayEff
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void UFHS_Attributes_CharacterCore::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue,
-	float NewValue)
-{
-	ClampAttributes(Attribute);
-	
-} // PostAttributeChange
-
-// ---------------------------------------------------------------------------------------------------------------------
-
 void UFHS_Attributes_CharacterCore::ClampAttributes(const FGameplayAttribute& Attribute)
 {
 	if (Attribute == GetCurrentHealthAttribute())
 	{
-		CurrentHealth.SetBaseValue(FMath::Clamp(CurrentHealth.GetBaseValue(), 0.f, MaxHealth.GetBaseValue()));
+		CurrentHealth.SetBaseValue(FMath::Clamp(CurrentHealth.GetBaseValue(), 0.f, MaxHealth.GetCurrentValue()));
 	}
 	else if (Attribute == GetCurrentUltimatePowerAttribute())
 	{
 		CurrentUltimatePower.SetBaseValue(FMath::Clamp(CurrentUltimatePower.GetBaseValue(), 0.f,
-													   MaxUltimatePower.GetBaseValue()));
-	}
-	else if (Attribute == GetMaxHealthAttribute())
-	{
-		MaxHealth.SetBaseValue(FMath::Max(0.f, MaxHealth.GetBaseValue()));
-	}
-	else if (Attribute == GetMaxUltimatePowerAttribute())
-	{
-		MaxUltimatePower.SetBaseValue(FMath::Max(0.f, MaxUltimatePower.GetBaseValue()));
+													   MaxUltimatePower.GetCurrentValue()));
 	}
 	
 } // ClampAttributes

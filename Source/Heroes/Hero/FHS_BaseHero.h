@@ -65,7 +65,8 @@ protected:
 	void OnRep_HeroData(UFHS_HeroData* PreviousData);
 	UFUNCTION()
 	void OnRep_CurrentWeapon();
-	
+
+	void SetupGAS();
 	void SetupWeapons();
 	void SetupMeshes();
 
