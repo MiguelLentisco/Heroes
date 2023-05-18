@@ -23,6 +23,8 @@ public class Heroes : ModuleRules
 			"DeveloperSettings",
 			"SlateCore",
 			"UMG",
+			"AIModule",
+			"NavigationSystem"
 		});
 		
 	}

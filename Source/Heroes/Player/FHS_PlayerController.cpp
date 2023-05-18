@@ -16,6 +16,7 @@ void AFHS_PlayerController::OnPossess(APawn* InPawn)
 	
 	InPawn->SetOwner(this);
 	Hero = GetPawn<AFHS_BaseHero>();
+	Hero->Tags.Add(TEXT("Player"));
 	
 	UAbilitySystemComponent* ASC = Hero->GetAbilitySystemComponent();
 	ASC->RegisterGameplayTagEvent(TAG_Status_Dead.GetTag()).AddUObject(this, &AFHS_PlayerController::OnPlayerDeadChanged);
@@ -34,6 +35,7 @@ void AFHS_PlayerController::AcknowledgePossession(APawn* P)
 	}
 
 	Hero = GetPawn<AFHS_BaseHero>();
+	Hero->Tags.Add(TEXT("Player"));
 	
 } // AcknowledgePossession
 

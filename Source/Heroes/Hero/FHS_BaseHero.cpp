@@ -32,7 +32,7 @@ AFHS_BaseHero::AFHS_BaseHero()
 	Camera3P->bAutoActivate = false;
 
 	ASC = CreateDefaultSubobject<UFHS_AbilitySystemComponent>(TEXT("GAS"));
-	ASC->SetIsReplicated(true);
+	ASC->SetIsReplicated(true);;
 
 } // AFHS_BaseHero
 
