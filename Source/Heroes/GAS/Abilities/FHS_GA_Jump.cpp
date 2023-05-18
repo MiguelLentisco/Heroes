@@ -15,7 +15,7 @@ UFHS_GA_Jump::UFHS_GA_Jump()
 	AbilityTags.AddTag(TAG_Name_Ability_Jump.GetTag());
 	
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	ActivationBlockedTags.AddTag(TAG_Status_Stun.GetTag());
+	ActivationBlockedTags.AddTag(TAG_Status_Stunnned.GetTag());
 	
 } // UFHS_GA_Jump
 

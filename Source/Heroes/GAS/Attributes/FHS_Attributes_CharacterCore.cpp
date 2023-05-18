@@ -5,7 +5,6 @@
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-// From https://github.com/tranek/GASDocumentation#concepts-as-attributes
 void UFHS_Attributes_CharacterCore::OnRep_CurrentHealth(const FGameplayAttributeData& OldValue)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UFHS_Attributes_CharacterCore, CurrentHealth, OldValue);
@@ -38,6 +37,14 @@ void UFHS_Attributes_CharacterCore::OnRep_MaxUltPower(const FGameplayAttributeDa
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+void UFHS_Attributes_CharacterCore::OnRep_Speed(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UFHS_Attributes_CharacterCore, Speed, OldValue);
+	
+} // OnRep_Speed
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 void UFHS_Attributes_CharacterCore::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -46,6 +53,7 @@ void UFHS_Attributes_CharacterCore::GetLifetimeReplicatedProps(TArray<FLifetimeP
 	DOREPLIFETIME_CONDITION_NOTIFY(UFHS_Attributes_CharacterCore, MaxHealth, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UFHS_Attributes_CharacterCore, CurrentUltimatePower, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UFHS_Attributes_CharacterCore, MaxUltimatePower, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UFHS_Attributes_CharacterCore, Speed, COND_None, REPNOTIFY_Always);
 	
 } // GetLifetimeReplicatedProps
 
@@ -87,5 +95,25 @@ void UFHS_Attributes_CharacterCore::ClampAttributes(const FGameplayAttribute& At
 	}
 	
 } // ClampAttributes
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void UFHS_Attributes_CharacterCore::InitFromMetaDataTable(const UDataTable* DataTable)
+{
+	Super::InitFromMetaDataTable(DataTable);
+
+	UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+	if (ASC == nullptr)
+	{
+		return;
+	}
+
+	OnRep_CurrentHealth(CurrentHealth.GetBaseValue());
+	OnRep_MaxHealth(MaxHealth.GetBaseValue());
+	OnRep_CurrentUltPower(CurrentUltimatePower.GetBaseValue());
+	OnRep_MaxUltPower(MaxUltimatePower.GetBaseValue());
+	OnRep_Speed(Speed.GetBaseValue());
+	
+} // InitFromMetaDataTable
 
 // ---------------------------------------------------------------------------------------------------------------------

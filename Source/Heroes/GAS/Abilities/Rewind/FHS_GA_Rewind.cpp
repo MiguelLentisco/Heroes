@@ -27,7 +27,7 @@ UFHS_GA_Rewind::UFHS_GA_Rewind()
 	CooldownTags.AddTag(TAG_Cooldown_Ability_Rewind.GetTag());
 	CooldownGameplayEffectClass = UFHS_GE_ApplyCooldown::StaticClass();
 	
-	ActivationBlockedTags.AddTag(TAG_Status_Stun.GetTag());
+	ActivationBlockedTags.AddTag(TAG_Status_Stunnned.GetTag());
 	
 } // UFHS_GA_Rewind
 

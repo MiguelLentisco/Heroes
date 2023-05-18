@@ -35,6 +35,8 @@ public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlayFireMontage(UAnimMontage* ShootAnim);
 
+	void AttachToHero();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USkeletalMeshComponent> Mesh;
@@ -61,6 +63,6 @@ protected:
 	void InitGAS();
 	void ChangeAbilityStatus();
 	void SetupWeaponMesh();
-	void AttachToHero();
+	
 	
 }; // UFHS_BaseWeapon

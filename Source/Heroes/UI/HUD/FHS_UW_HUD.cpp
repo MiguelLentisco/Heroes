@@ -3,6 +3,7 @@
 #include "FHS_UW_Attributes.h"
 #include "FHS_UW_Abilities.h"
 #include "FHS_UW_Weapon.h"
+#include "Heroes/GAS/FHS_GameplayTags.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -15,11 +16,17 @@ void UFHS_UW_HUD::OnHeroInputChangedInput(UAbilitySystemComponent* ASC, bool bSe
 
 	if (bSet)
 	{
+		ASC->RegisterGameplayTagEvent(TAG_Status_Dead, EGameplayTagEventType::AnyCountChange).AddUObject(
+			this, &UFHS_UW_HUD::OnDeadChanged);
+		ASC->RegisterGameplayTagEvent(TAG_Status_Stunnned, EGameplayTagEventType::AnyCountChange).AddUObject(
+			this, &UFHS_UW_HUD::OnStunChanged);
 		IFHS_GASListener::Execute_SetupWithGAS(AttributesHUD, ASC);
 		IFHS_GASListener::Execute_SetupWithGAS(AbilitiesHUD, ASC);
 	}
 	else
 	{
+		ASC->RegisterGameplayTagEvent(TAG_Status_Dead, EGameplayTagEventType::AnyCountChange).RemoveAll(this);
+		ASC->RegisterGameplayTagEvent(TAG_Status_Stunnned, EGameplayTagEventType::AnyCountChange).RemoveAll(this);
 		IFHS_GASListener::Execute_CleanFromGAS(AttributesHUD, ASC);
 		IFHS_GASListener::Execute_CleanFromGAS(AbilitiesHUD, ASC);
 	}

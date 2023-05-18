@@ -33,6 +33,10 @@ public:
 	FGameplayAttributeData MaxUltimatePower = FGameplayAttributeData(100.f);
 	ATTRIBUTE_ACCESSORS(UFHS_Attributes_CharacterCore, MaxUltimatePower)
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,ReplicatedUsing = OnRep_Speed)
+	FGameplayAttributeData Speed = FGameplayAttributeData(300.f);
+	ATTRIBUTE_ACCESSORS(UFHS_Attributes_CharacterCore, Speed)
+
 	// From https://github.com/tranek/GASDocumentation#concepts-as-attributes
 	UFUNCTION()
 	virtual void OnRep_CurrentHealth(const FGameplayAttributeData& OldValue);
@@ -42,11 +46,15 @@ public:
 	virtual void OnRep_CurrentUltPower(const FGameplayAttributeData& OldValue);
 	UFUNCTION()
 	virtual void OnRep_MaxUltPower(const FGameplayAttributeData& OldValue);
+	UFUNCTION()
+	virtual void OnRep_Speed(const FGameplayAttributeData& OldValue);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 	void ClampAttributes(const FGameplayAttribute& Attribute);
+
+	virtual void InitFromMetaDataTable(const UDataTable* DataTable) override;
 	
 }; // UFHSAttributes_CharacterCore

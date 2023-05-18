@@ -16,7 +16,7 @@ UFHS_GA_Reload::UFHS_GA_Reload()
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 
-	ActivationBlockedTags.AddTag(TAG_Status_Stun.GetTag());
+	ActivationBlockedTags.AddTag(TAG_Status_Stunnned.GetTag());
 	
 } // UFHS_GA_Reload
 

@@ -29,8 +29,7 @@ void UFHS_AbilitySystemComponent::Clear()
 	NameTag = FGameplayTag();
 	ClearAllAbilities();
 	RemoveAllSpawnedAttributes();
-	ActiveGameplayEffects.RemoveActiveEffects({}, -1);
-	ResetTagMap();
+	RemoveActiveEffects({});
 	
 } // Clear
 

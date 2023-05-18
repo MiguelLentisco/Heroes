@@ -6,9 +6,12 @@
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Heroes/Data/FHS_AbilityMeshData.h"
 #include "Heroes/GAS/FHS_AbilitySet.h"
 #include "Heroes/GAS/FHS_AbilitySystemComponent.h"
+#include "Heroes/GAS/FHS_GameplayTags.h"
 #include "Heroes/GAS/Attributes/FHS_Attributes_CharacterCore.h"
 #include "Heroes/Weapons/FHS_BaseWeapon.h"
 #include "Net/UnrealNetwork.h"
@@ -19,6 +22,14 @@ AFHS_BaseHero::AFHS_BaseHero()
 {
 	bReplicates = true;
 	SetupConstructor();
+
+	CameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraSpringArm"));
+	CameraSpringArm->SetupAttachment(GetMesh());
+	CameraSpringArm->SetUsingAbsoluteRotation(true);
+
+	Camera3P = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera3P"));
+	Camera3P->SetupAttachment(CameraSpringArm);
+	Camera3P->bAutoActivate = false;
 
 	ASC = CreateDefaultSubobject<UFHS_AbilitySystemComponent>(TEXT("GAS"));
 	ASC->SetIsReplicated(true);
@@ -35,12 +46,21 @@ UAbilitySystemComponent* AFHS_BaseHero::GetAbilitySystemComponent() const
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+bool AFHS_BaseHero::IsInputBlocked() const
+{
+	return bDead || bStunned;
+	
+} // IsInputBlocked
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 void AFHS_BaseHero::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME_CONDITION(AFHS_BaseHero, HeroData, COND_None);
 	DOREPLIFETIME_CONDITION(AFHS_BaseHero, CurrentWeapon, COND_None);
+	DOREPLIFETIME_CONDITION(AFHS_BaseHero, bDead, COND_None);
 	
 } // GetLifetimeReplicatedProps
 
@@ -71,15 +91,91 @@ void AFHS_BaseHero::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HasAuthority() && HeroData != nullptr)
+	MeshOriginalTransform = GetMesh()->GetRelativeTransform();
+
+	if (HasAuthority())
 	{
-		SetupGAS();
-		SetupWeapons();
+		ASC->GetGameplayAttributeValueChangeDelegate(UFHS_Attributes_CharacterCore::GetSpeedAttribute()).AddUObject(
+		this, &AFHS_BaseHero::SpeedUpdated);
+		ASC->GetGameplayAttributeValueChangeDelegate(UFHS_Attributes_CharacterCore::GetCurrentHealthAttribute()).AddUObject(
+			this, &AFHS_BaseHero::HealthUpdated);
+		ASC->RegisterGameplayTagEvent(TAG_Status_Dead.GetTag()).AddUObject(this, &AFHS_BaseHero::OnPlayerDeadChanged);
+		ASC->RegisterGameplayTagEvent(TAG_Status_Stunnned.GetTag()).AddUObject(this, &AFHS_BaseHero::OnPlayerStunChanged);
+
+		if (HeroData != nullptr)
+		{
+			SetupGAS();
+			SetupWeapons();
+		}
 	}
-	
+
 	OnRep_HeroData(nullptr);
 	
 } // BeginPlay
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseHero::SpeedUpdated(const FOnAttributeChangeData& AttributeData)
+{
+	GetCharacterMovement()->MaxWalkSpeed = AttributeData.NewValue;
+	
+} // SetSpeed
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseHero::HealthUpdated(const FOnAttributeChangeData& AttributeData)
+{
+	if (bDead || !FMath::IsNearlyZero(AttributeData.NewValue))
+	{
+		return;
+	}
+
+	KillHero();
+	
+} // HealthUpdated
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseHero::KillHero()
+{
+	bDead = true;
+	ASC->SetNumericAttributeBase(UFHS_Attributes_CharacterCore::GetCurrentHealthAttribute(), 0.f);
+	ASC->SetTagMapCount(TAG_Status_Dead, 1);
+	
+} // KillHero
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseHero::OnPlayerDeadChanged(const FGameplayTag DeadTag, int32 NumCount)
+{
+	bDead = NumCount > 0;
+	if (bDead)
+	{
+		ASC->CancelAllAbilities();
+		ASC->RemoveActiveEffects({});
+	}
+	else
+	{
+		InitStats();
+	}
+
+	OnRep_bDead();
+	
+} // OnPlayerDeadChanged
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseHero::OnPlayerStunChanged(const FGameplayTag StunTag, int32 NumCount)
+{
+	bStunned = NumCount > 0;
+	if (!bStunned)
+	{
+		return;
+	}
+
+	ASC->CancelAllAbilities();
+	
+} // OnPlayerStunChanged
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -98,6 +194,37 @@ void AFHS_BaseHero::SetHeroData_Implementation(UFHS_HeroData* NewHeroData)
 	OnRep_HeroData(PreviousData);
 	
 } // SetHeroData
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseHero::OnRep_bDead()
+{
+	GetMesh()->SetSimulatePhysics(bDead);
+	GetMesh()->SetCollisionProfileName(bDead ? TEXT("Ragdoll") : TEXT("CharacterMesh"));
+	GetCharacterMovement()->StopMovementImmediately();
+
+	if (!bDead)
+	{
+		GetMesh()->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		GetMesh()->SetRelativeTransform(MeshOriginalTransform, false, nullptr, ETeleportType::ResetPhysics);
+	}
+
+	if (CurrentWeapon == nullptr)
+	{
+		return;
+	}
+
+	if (bDead)
+	{
+		const FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+		CurrentWeapon->AttachToComponent(GetMesh(), AttachmentRules, Hand3PSocket);
+	}
+	else
+	{
+		CurrentWeapon->AttachToHero();
+	}
+	
+} // OnRep_bDead
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -123,6 +250,22 @@ void AFHS_BaseHero::OnRep_CurrentWeapon()
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+void AFHS_BaseHero::InitStats()
+{
+	for (const FAttributeDefaults& Attribute : HeroData->Attributes)
+	{
+		ASC->InitStats(Attribute.Attributes, Attribute.DefaultStartingTable);
+	}
+
+	for (const TSoftClassPtr<UGameplayEffect>& GEClass : HeroData->InitialEffects)
+	{
+		ASC->BP_ApplyGameplayEffectToSelf(GEClass.LoadSynchronous(), 1, ASC->MakeEffectContext());
+	}
+	
+} // InitStats
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 void AFHS_BaseHero::SetupGAS()
 {
 	if (HeroData == nullptr)
@@ -135,16 +278,8 @@ void AFHS_BaseHero::SetupGAS()
 	SetupGASInput(false);
 	
 	ASC->SetNameTag(HeroData->Name);
-	for (const FAttributeDefaults& Attribute : HeroData->Attributes)
-	{
-		ASC->InitStats(Attribute.Attributes, Attribute.DefaultStartingTable);
-	}
+	InitStats();
 	ASC->GiveAbilities(HeroData->AbilitySet.LoadSynchronous());
-
-	for (const TSoftClassPtr<UGameplayEffect>& GEClass : HeroData->InitialEffects)
-	{
-		ASC->BP_ApplyGameplayEffectToSelf(GEClass.LoadSynchronous(), 1, ASC->MakeEffectContext());
-	}
 	
 } // SetupGAS
 
@@ -313,10 +448,9 @@ void AFHS_BaseHero::BindMovementActions(UInputComponent* PlayerInputComponent)
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-
 void AFHS_BaseHero::Move(const FInputActionValue& Value)
 {
-	if (Controller == nullptr)
+	if (IsInputBlocked() || Controller == nullptr)
 	{
 		return;
 	}
@@ -334,7 +468,7 @@ void AFHS_BaseHero::Move(const FInputActionValue& Value)
 
 void AFHS_BaseHero::Look(const FInputActionValue& Value)
 {
-	if (Controller == nullptr)
+	if (IsInputBlocked() || Controller == nullptr)
 	{
 		return;
 	}

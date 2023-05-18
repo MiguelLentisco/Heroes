@@ -1,16 +1,13 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
-#include "HeroesGameMode.h"
+#include "FHS_BaseGameMode.h"
 #include "Heroes/Hero/FHS_BaseHero.h"
-#include "UObject/ConstructorHelpers.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-AHeroesGameMode::AHeroesGameMode() : Super()
+AFHS_BaseGameMode::AFHS_BaseGameMode()
 {
 	DefaultPawnClass = AFHS_BaseHero::StaticClass();
 
-} // AHeroesGameMode
+} // AFHS_BaseGameMode
 
 // ---------------------------------------------------------------------------------------------------------------------
 

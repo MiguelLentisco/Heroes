@@ -22,7 +22,7 @@ UFHS_GA_FireWeapon::UFHS_GA_FireWeapon()
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	
-	ActivationBlockedTags.AddTag(TAG_Status_Stun.GetTag());
+	ActivationBlockedTags.AddTag(TAG_Status_Stunnned.GetTag());
 	
 	CooldownGameplayEffectClass = UFHS_GE_ApplyCooldown::StaticClass();
 	bUseScalarCooldown = false;

@@ -16,6 +16,11 @@ class HEROES_API UFHS_UW_HUD : public UUserWidget
 public:
 	void OnHeroInputChangedInput(UAbilitySystemComponent* ASC, bool bSet);
 	void OnHeroWeaponInputChangedInput(UAbilitySystemComponent* ASC, bool bSet);
+
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	void OnDeadChanged(const FGameplayTag Tag, int32 TagCount);
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	void OnStunChanged(const FGameplayTag Tag, int32 TagCount);
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (BindWidget))

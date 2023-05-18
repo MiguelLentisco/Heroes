@@ -156,6 +156,20 @@ void AFHS_BaseWeapon::PlayFireMontage_Implementation(UAnimMontage* ShootAnim)
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+void AFHS_BaseWeapon::AttachToHero()
+{
+	if (HeroOwner == nullptr)
+	{
+		return;
+	}
+	
+	const FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+	AttachToComponent(HeroOwner->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
+	
+} // AttachToHero
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 void AFHS_BaseWeapon::OnRep_WeaponData(UFHS_AbilityMeshData* OldWeaponData)
 {
 	if (OldWeaponData != nullptr)
@@ -196,7 +210,7 @@ void AFHS_BaseWeapon::InitGAS()
 	}
 
 	UAbilitySystemComponent* ASC = HeroOwner->GetAbilitySystemComponent();
-	ASC->AddReplicatedLooseGameplayTag(WeaponData->Name);
+	ASC->SetTagMapCount(WeaponData->Name, 1);
 	for (const FAttributeDefaults& Attribute : WeaponData->Attributes)
 	{
 		ASC->InitStats(Attribute.Attributes, Attribute.DefaultStartingTable);
@@ -244,17 +258,4 @@ void AFHS_BaseWeapon::SetupWeaponMesh()
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseWeapon::AttachToHero()
-{
-	if (HeroOwner == nullptr)
-	{
-		return;
-	}
-	
-	const FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
-	AttachToComponent(HeroOwner->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
-	
-} // AttachToHero
-
-// ---------------------------------------------------------------------------------------------------------------------
 

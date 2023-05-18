@@ -8,7 +8,7 @@
 
 void UFHS_UW_Ability::SetupWithGAS_Implementation(UAbilitySystemComponent* ASC)
 {
-	SetVisibility(ESlateVisibility::Hidden);
+	SetVisibility(ESlateVisibility::Collapsed);
 	
 	if (ASC == nullptr || AbilityCommand == EFHS_AbilityCommand::None)
 	{
@@ -69,6 +69,8 @@ void UFHS_UW_Ability::SetupWithGAS_Implementation(UAbilitySystemComponent* ASC)
 
 void UFHS_UW_Ability::CleanFromGAS_Implementation(UAbilitySystemComponent* ASC)
 {
+	SetVisibility(ESlateVisibility::Collapsed);
+	
 	if (ASC == nullptr || AbilityCommand == EFHS_AbilityCommand::None || LinkedGA == nullptr)
 	{
 		return;
