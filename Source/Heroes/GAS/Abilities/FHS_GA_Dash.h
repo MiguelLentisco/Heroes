@@ -22,7 +22,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Dash)
 	FScalableFloat DashDuration = FScalableFloat(.2f);
 
-	UPROPERTY(EditDefaultsOnly, Category = Fire, Meta = (Categories = "GameplayCue"))
+	UPROPERTY(EditDefaultsOnly, Category = Dash, Meta = (Categories = "GameplayCue"))
 	FGameplayTag CGTag;
 	
 	UFUNCTION()

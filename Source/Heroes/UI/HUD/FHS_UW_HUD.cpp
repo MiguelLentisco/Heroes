@@ -1,7 +1,8 @@
 ﻿#include "FHS_UW_HUD.h"
 
-#include "FHS_UW_Attributes.h"
 #include "FHS_UW_Abilities.h"
+#include "FHS_UW_Attributes.h"
+#include "FHS_UW_UltimateAbility.h"
 #include "FHS_UW_Weapon.h"
 #include "Heroes/GAS/FHS_GameplayTags.h"
 
@@ -22,6 +23,7 @@ void UFHS_UW_HUD::OnHeroInputChangedInput(UAbilitySystemComponent* ASC, bool bSe
 			this, &UFHS_UW_HUD::OnStunChanged);
 		IFHS_GASListener::Execute_SetupWithGAS(AttributesHUD, ASC);
 		IFHS_GASListener::Execute_SetupWithGAS(AbilitiesHUD, ASC);
+		IFHS_GASListener::Execute_SetupWithGAS(UltimateAbilityHUD, ASC);
 	}
 	else
 	{
@@ -29,6 +31,7 @@ void UFHS_UW_HUD::OnHeroInputChangedInput(UAbilitySystemComponent* ASC, bool bSe
 		ASC->RegisterGameplayTagEvent(TAG_Status_Stunned, EGameplayTagEventType::AnyCountChange).RemoveAll(this);
 		IFHS_GASListener::Execute_CleanFromGAS(AttributesHUD, ASC);
 		IFHS_GASListener::Execute_CleanFromGAS(AbilitiesHUD, ASC);
+		IFHS_GASListener::Execute_CleanFromGAS(UltimateAbilityHUD, ASC);
 	}
 	
 } // OnHeroInputChangedInput

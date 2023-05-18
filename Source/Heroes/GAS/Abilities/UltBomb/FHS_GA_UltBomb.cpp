@@ -2,16 +2,17 @@
 
 #include "FHS_BombComponent.h"
 #include "Heroes/GAS/FHS_GameplayTags.h"
+#include "Heroes/GAS/Attributes/FHS_Attributes_CharacterCore.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Name_Ability_UltBomb, TEXT("Name.Ability.UltBomb"));
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Name_Ability_Ultimate_Bomb, TEXT("Name.Ability.Ultimate.Bomb"));
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 UFHS_GA_UltBomb::UFHS_GA_UltBomb()
 {
-	AbilityTags.AddTag(TAG_Name_Ability_UltBomb.GetTag());
+	AbilityTags.AddTag(TAG_Name_Ability_Ultimate_Bomb.GetTag());
 	
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -19,6 +20,19 @@ UFHS_GA_UltBomb::UFHS_GA_UltBomb()
 	CancelAbilitiesWithTag.AddTag(TAG_Name_Ability_Reload.GetTag());
 	ActivationBlockedTags.AddTag(TAG_Status_Stunned.GetTag());
 	ActivationBlockedTags.AddTag(TAG_Status_Dead.GetTag());
+
+	FGameplayModifierInfo Cost;
+	Cost.ModifierOp = EGameplayModOp::Additive;
+	Cost.Attribute = UFHS_Attributes_CharacterCore::GetCurrentUltimatePowerAttribute();
+
+	FAttributeBasedFloat MaxPowerCost;
+	MaxPowerCost.BackingAttribute = FGameplayEffectAttributeCaptureDefinition(
+		UFHS_Attributes_CharacterCore::GetMaxUltimatePowerAttribute(), EGameplayEffectAttributeCaptureSource::Source,
+		false);
+	MaxPowerCost.Coefficient = -1.f;
+
+	Cost.ModifierMagnitude = MaxPowerCost;
+	AttributeCosts = { Cost };
 	
 } // UFHS_GA_UltBomb
 
@@ -64,6 +78,7 @@ void UFHS_GA_UltBomb::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	Projectile->MaxSpeed = SpeedVal;
 	Projectile->ProjectileGravityScale = Gravity;
 	Projectile->DamageByDistance = DamageByDistance.LoadSynchronous();
+	Projectile->GCTag = GCTag;
 
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	

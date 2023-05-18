@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "GameplayTagContainer.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "FHS_BombComponent.generated.h"
 
@@ -13,14 +14,16 @@ class UFHS_BombComponent : public UProjectileMovementComponent
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TEnumAsByte<EObjectTypeQuery> ObjectTypeExplosion;
+
+	UPROPERTY()
+	TObjectPtr<UCurveFloat> DamageByDistance;
+	
+	FGameplayTag GCTag;
 	
 	float ExplosionRadius = 500.f;
 	float MaxDamage = 100.f;
 	float ImplodeTime = 2.f;
-
-	UPROPERTY()
-	TObjectPtr<UCurveFloat> DamageByDistance;
-
+	
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	

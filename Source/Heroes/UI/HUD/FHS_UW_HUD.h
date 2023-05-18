@@ -3,6 +3,7 @@
 #include "Blueprint/UserWidget.h"
 #include "FHS_UW_HUD.generated.h"
 
+class UFHS_UW_UltimateAbility;
 class UFHS_UW_Attributes;
 class UFHS_UW_Abilities;
 class UFHS_UW_Weapon;
@@ -31,5 +32,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (BindWidget))
 	TObjectPtr<UFHS_UW_Weapon> WeaponHUD;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (BindWidget))
+	TObjectPtr<UFHS_UW_UltimateAbility> UltimateAbilityHUD;
 	
 }; // UFHS_UW_HUD

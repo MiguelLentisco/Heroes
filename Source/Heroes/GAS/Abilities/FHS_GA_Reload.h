@@ -28,7 +28,7 @@ public:
 	                        const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility,
 	                        bool bWasCancelled) override;
 
-	UPROPERTY(EditDefaultsOnly, Category = Fire, Meta = (Categories = "GameplayCue"))
+	UPROPERTY(EditDefaultsOnly, Category = Reload, Meta = (Categories = "GameplayCue"))
 	FGameplayTag CGTag;
 
 protected:

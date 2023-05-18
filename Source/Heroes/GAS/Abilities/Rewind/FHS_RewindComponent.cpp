@@ -1,6 +1,7 @@
 ﻿#include "FHS_RewindComponent.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Heroes/GAS/FHS_GameplayTags.h"
 #include "Heroes/GAS/Attributes/FHS_Attributes_CharacterCore.h"
 #include "Heroes/GAS/Attributes/FHS_Attributes_Weapon.h"
 #include "Heroes/Hero/FHS_BaseHero.h"
@@ -17,8 +18,21 @@ UFHS_RewindComponent::UFHS_RewindComponent()
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+void UFHS_RewindComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (HeroASC != nullptr)
+	{
+		HeroASC->RegisterGameplayTagEvent(TAG_Status_Dead, EGameplayTagEventType::AnyCountChange).RemoveAll(this);
+	}
+	
+	Super::EndPlay(EndPlayReason);
+	
+} // EndPlay
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 void UFHS_RewindComponent::TickComponent(float DeltaTime, ELevelTick TickType,
-	FActorComponentTickFunction* ThisTickFunction)
+                                         FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
@@ -53,6 +67,9 @@ void UFHS_RewindComponent::StartRecording()
 
 	HeroASC = Hero->GetAbilitySystemComponent();
 	CurrentTime = 0.f;
+
+	HeroASC->RegisterGameplayTagEvent(TAG_Status_Dead, EGameplayTagEventType::AnyCountChange).AddUObject(
+		this, &UFHS_RewindComponent::OnHeroDead);
 	
 	RecordData();
 	
@@ -63,6 +80,10 @@ void UFHS_RewindComponent::StartRecording()
 void UFHS_RewindComponent::Rewind()
 {
 	FFHS_RewindData* PastData = RewindData.Peek();
+	if (PastData == nullptr)
+	{
+		return;
+	}
 
 	GetOwner()->SetActorLocation(PastData->Position, false, nullptr, ETeleportType::TeleportPhysics);
 	GetOwner()->GetInstigatorController()->SetControlRotation(PastData->ControlRotation);
@@ -79,6 +100,24 @@ void UFHS_RewindComponent::Rewind()
 	}
 	
 } // Rewind
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void UFHS_RewindComponent::OnHeroDead(const FGameplayTag DeadTag, int32 NumTag)
+{
+	const bool bDead = NumTag > 0;
+	
+	SetComponentTickEnabled(bDead);
+	if (bDead)
+	{
+		RewindData.Empty();
+	}
+	else
+	{
+		RecordData();
+	}
+	
+} // OnHeroDead
 
 // ---------------------------------------------------------------------------------------------------------------------
 

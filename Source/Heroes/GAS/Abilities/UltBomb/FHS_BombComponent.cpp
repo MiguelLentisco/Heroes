@@ -30,35 +30,45 @@ void UFHS_BombComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UFHS_BombComponent::Implode()
 {
+	auto* Instigator = GetOwner()->GetInstigator<IAbilitySystemInterface>();
+	if (Instigator == nullptr)
+	{
+		GetOwner()->Destroy();
+		return;
+	}
+	
+	UAbilitySystemComponent* InstigatorASC = Instigator->GetAbilitySystemComponent();
+
+	// Play sound
+	FGameplayCueParameters CueParameters;
+	CueParameters.Instigator = InstigatorASC->GetOwner();
+	CueParameters.Location = GetOwner()->GetActorLocation();
+	CueParameters.EffectCauser = GetOwner();
+	InstigatorASC->ExecuteGameplayCue(GCTag, CueParameters);
+
+	// Damage heroes found
 	TArray<AActor*> HeroesFound;
 	UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetOwner()->GetActorLocation(), ExplosionRadius,
-	                                          {ObjectTypeExplosion}, nullptr, {GetOwner()}, HeroesFound);
+											  {ObjectTypeExplosion}, nullptr, {GetOwner()}, HeroesFound);
 	if (HeroesFound.IsEmpty())
 	{
 		GetOwner()->Destroy();
 		return;
 	}
-
-	auto* Instigator = GetOwner()->GetInstigator<IAbilitySystemInterface>();
-	if (Instigator == nullptr)
-	{
-		return;
-	}
 	
-	const UAbilitySystemComponent* InstigatorUSC = Instigator->GetAbilitySystemComponent();
 	for (AActor* Hero : HeroesFound)
 	{
 		const auto* HeroInterface = Cast<IAbilitySystemInterface>(Hero);
 		if (HeroInterface == nullptr)
 		{
-			return;
+			continue;
 		}
 
 		FGameplayEffectSpecHandle GEHandle;
 		UAbilitySystemComponent* ASC = HeroInterface->GetAbilitySystemComponent();
-		if (InstigatorUSC != nullptr)
+		if (InstigatorASC != nullptr)
 		{
-			GEHandle = InstigatorUSC->MakeOutgoingSpec(UFHS_GE_MakeDamage::StaticClass(), 1, InstigatorUSC->MakeEffectContext());
+			GEHandle = InstigatorASC->MakeOutgoingSpec(UFHS_GE_MakeDamage::StaticClass(), 1, InstigatorASC->MakeEffectContext());
 		}
 		else
 		{

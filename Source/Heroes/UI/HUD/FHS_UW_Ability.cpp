@@ -39,6 +39,7 @@ void UFHS_UW_Ability::SetupWithGAS_Implementation(UAbilitySystemComponent* ASC)
 		}
 	}
 
+	// Set name
 	FString LeftAux, AbilityShortName;
 	LinkedGA->AbilityTags.First().ToString().Split(TEXT("."), &LeftAux, &AbilityShortName, ESearchCase::CaseSensitive,
 	                                               ESearchDir::FromEnd);

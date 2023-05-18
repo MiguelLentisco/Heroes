@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "AttributeSet.h"
+#include "GameplayTags.h"
 #include "FHS_RewindComponent.generated.h"
 
 class UAbilitySystemComponent;
@@ -26,12 +27,15 @@ public:
 	UFHS_RewindComponent();
 
 	void SetRewindTime(float NewRewindTime) { RewindTime = NewRewindTime; }
-	
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 
 	void StartRecording();
 	void Rewind();
+
+	void OnHeroDead(const FGameplayTag DeadTag, int32 NumTag);
 
 protected:
 	UPROPERTY()

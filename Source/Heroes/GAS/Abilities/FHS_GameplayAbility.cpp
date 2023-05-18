@@ -24,16 +24,7 @@ UGameplayEffect* UFHS_GameplayAbility::GetCostGameplayEffect() const
 
 	UGameplayEffect* GECosts = NewObject<UGameplayEffect>();
 	GECosts->DurationPolicy = EGameplayEffectDurationType::Instant;
-
-	for (const TPair<FGameplayAttribute, FScalableFloat>& AttributeCost : AttributeCosts)
-	{
-		FGameplayModifierInfo ModifierInfo;
-		ModifierInfo.ModifierOp = EGameplayModOp::Additive;
-		ModifierInfo.Attribute = AttributeCost.Key;
-		ModifierInfo.ModifierMagnitude = AttributeCost.Value;
-		
-		GECosts->Modifiers.Add(ModifierInfo);
-	}
+	GECosts->Modifiers = AttributeCosts;
 
 	return GECosts;
 	

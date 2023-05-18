@@ -42,5 +42,8 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Bomb)
 	TSoftClassPtr<AActor> BombClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = Bomb, Meta = (Categories = "GameplayCue"))
+	FGameplayTag GCTag;
 	
 }; // UFHS_GA_UltBomb

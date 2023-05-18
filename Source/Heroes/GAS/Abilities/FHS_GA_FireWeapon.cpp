@@ -30,8 +30,13 @@ UFHS_GA_FireWeapon::UFHS_GA_FireWeapon()
 	CooldownAttribute = UFHS_Attributes_Weapon::GetFireRateAttribute();
 	CooldownTags.AddTag(TAG_Cooldown_Ability_FireWeapon.GetTag());
 	CancelAbilitiesWithTag.AddTag(TAG_Name_Ability_Reload.GetTag());
-	
-	AttributeCosts = {{ UFHS_Attributes_Weapon::GetCurrentAmmoAttribute(), FScalableFloat(-1) }};
+
+	// Cost 1 ammo
+	FGameplayModifierInfo Cost;
+	Cost.ModifierOp = EGameplayModOp::Additive;
+	Cost.Attribute = UFHS_Attributes_Weapon::GetCurrentAmmoAttribute();
+	Cost.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(-1.f));
+	AttributeCosts = { Cost };
 	
 } // UFHS_GA_FireWeapon
 

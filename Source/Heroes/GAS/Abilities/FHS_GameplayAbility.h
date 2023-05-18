@@ -16,7 +16,7 @@ public:
 	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Costs)
-	TMap<FGameplayAttribute, FScalableFloat> AttributeCosts;
+	TArray<FGameplayModifierInfo> AttributeCosts;
 	
 	virtual UGameplayEffect* GetCostGameplayEffect() const override;
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
