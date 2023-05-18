@@ -1,6 +1,6 @@
 ﻿#include "FHS_GA_Jump.h"
 
-#include "Abilities/Tasks/AbilityTask_WaitInputRelease.h"
+#include "AbilitySystemComponent.h"
 #include "GameFramework/Character.h"
 #include "Heroes/GAS/FHS_GameplayTags.h"
 
@@ -15,7 +15,8 @@ UFHS_GA_Jump::UFHS_GA_Jump()
 	AbilityTags.AddTag(TAG_Name_Ability_Jump.GetTag());
 	
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	ActivationBlockedTags.AddTag(TAG_Status_Stunnned.GetTag());
+	ActivationBlockedTags.AddTag(TAG_Status_Stunned.GetTag());
+	ActivationBlockedTags.AddTag(TAG_Status_Dead.GetTag());
 	
 } // UFHS_GA_Jump
 
@@ -62,6 +63,9 @@ void UFHS_GA_Jump::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	Character->Jump();
 	Character->LandedDelegate.RemoveAll(this);
 	Character->LandedDelegate.AddDynamic(this, &UFHS_GA_Jump::OnCharacterLanded);
+
+	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+	ASC->ExecuteGameplayCue(SoundGCTag, ASC->MakeEffectContext());
 	
 } // ActivateAbility
 

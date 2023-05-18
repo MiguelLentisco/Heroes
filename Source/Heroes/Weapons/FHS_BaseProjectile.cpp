@@ -7,7 +7,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
 #include "Heroes/GAS/FHS_GameplayTags.h"
-#include "Heroes/GAS/Effects/FHS_GE_BulletDamage.h"
+#include "Heroes/GAS/Effects/FHS_GE_MakeDamage.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -70,12 +70,12 @@ void AFHS_BaseProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor
 	FGameplayEffectSpecHandle GEHandle;
 	if (InstigatorUSC != nullptr)
 	{
-		GEHandle = InstigatorUSC->MakeOutgoingSpec(UFHS_GE_BulletDamage::StaticClass(), 1,
+		GEHandle = InstigatorUSC->MakeOutgoingSpec(UFHS_GE_MakeDamage::StaticClass(), 1,
 		                                           InstigatorUSC->MakeEffectContext());
 	}
 	else
 	{
-		GEHandle = ASC->MakeOutgoingSpec(UFHS_GE_BulletDamage::StaticClass(), 1, ASC->MakeEffectContext());
+		GEHandle = ASC->MakeOutgoingSpec(UFHS_GE_MakeDamage::StaticClass(), 1, ASC->MakeEffectContext());
 	}
 
 	GEHandle.Data->SetSetByCallerMagnitude(TAG_Data_Damage, DamageValue.GetValueAtLevel(1));

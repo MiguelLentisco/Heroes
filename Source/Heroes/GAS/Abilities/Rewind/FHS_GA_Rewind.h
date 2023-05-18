@@ -22,6 +22,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Rewind)
 	FScalableFloat RewindTime = 6.f;
 
+	UPROPERTY(EditDefaultsOnly, Category = Fire, Meta = (Categories = "GameplayCue"))
+	FGameplayTag CGTag;
+
 protected:
 	UPROPERTY()
 	TWeakObjectPtr<UFHS_RewindComponent> Rewind;

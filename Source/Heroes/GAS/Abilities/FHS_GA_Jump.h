@@ -26,6 +26,9 @@ public:
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 							   const FGameplayAbilityActivationInfo ActivationInfo) override;
 
+	UPROPERTY(EditDefaultsOnly, Category = Fire, Meta = (Categories = "GameplayCue"))
+	FGameplayTag SoundGCTag;
+	
 protected:
 	UFUNCTION()
 	void OnCharacterLanded(const FHitResult& Hit);

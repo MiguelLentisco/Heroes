@@ -74,7 +74,8 @@ void UFHS_RewindComponent::Rewind()
 	
 	for (const TPair<FGameplayAttribute, int32>& AttributeCurve : PastData->AttributesCurves)
 	{
-		HeroASC->SetNumericAttributeBase(AttributeCurve.Key, AttributeCurve.Value);
+		const float FinalValue = FMath::Max(AttributeCurve.Value, HeroASC->GetNumericAttributeBase(AttributeCurve.Key));
+		HeroASC->SetNumericAttributeBase(AttributeCurve.Key, FinalValue);
 	}
 	
 } // Rewind

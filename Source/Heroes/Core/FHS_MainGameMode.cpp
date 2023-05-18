@@ -35,7 +35,8 @@ void AFHS_MainGameMode::RespawnPlayerDead(APlayerController* PC)
 	}
 
 	Hero->GetAbilitySystemComponent()->SetTagMapCount(TAG_Status_Dead.GetTag(), 0);
-	RestartPlayer(PC);
+	FString OutError;
+	UpdatePlayerStartSpot(PC, FString(), OutError);
 	
 } // RespawnPlayerDead
 

@@ -28,13 +28,14 @@ public:
 	void SetHeroOwner(AFHS_BaseHero* NewHero);
 	void SetWeaponData(UFHS_AbilityMeshData* NewData);
 	void SetMainWeapon(bool bNewMainWeapon);
-	
+
+	void InitStats();
 	void SetupInput(bool bWantsToSet);
 
 	void PrimaryFire(const TSubclassOf<AFHS_BaseProjectile>& ProjectileClass, const FVector& MuzzleOffset);
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlayFireMontage(UAnimMontage* ShootAnim);
-
+	
 	void AttachToHero();
 
 protected:

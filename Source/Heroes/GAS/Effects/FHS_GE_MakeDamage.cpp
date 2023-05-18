@@ -1,11 +1,11 @@
-﻿#include "FHS_GE_BulletDamage.h"
+﻿#include "FHS_GE_MakeDamage.h"
 
 #include "Heroes/GAS/FHS_GameplayTags.h"
 #include "Heroes/GAS/Attributes/FHS_Attributes_CharacterCore.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-UFHS_GE_BulletDamage::UFHS_GE_BulletDamage()
+UFHS_GE_MakeDamage::UFHS_GE_MakeDamage()
 {
 	DurationPolicy = EGameplayEffectDurationType::Instant;
 	
@@ -19,7 +19,7 @@ UFHS_GE_BulletDamage::UFHS_GE_BulletDamage()
 	
 	Modifiers.Add(ModifierInfo);
 	
-} // UFHS_GE_BulletDamage
+} // UFHS_GE_MakeDamage
 
 // ---------------------------------------------------------------------------------------------------------------------
 

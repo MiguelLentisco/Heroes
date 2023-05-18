@@ -100,7 +100,7 @@ void AFHS_BaseHero::BeginPlay()
 		ASC->GetGameplayAttributeValueChangeDelegate(UFHS_Attributes_CharacterCore::GetCurrentHealthAttribute()).AddUObject(
 			this, &AFHS_BaseHero::HealthUpdated);
 		ASC->RegisterGameplayTagEvent(TAG_Status_Dead.GetTag()).AddUObject(this, &AFHS_BaseHero::OnPlayerDeadChanged);
-		ASC->RegisterGameplayTagEvent(TAG_Status_Stunnned.GetTag()).AddUObject(this, &AFHS_BaseHero::OnPlayerStunChanged);
+		ASC->RegisterGameplayTagEvent(TAG_Status_Stunned.GetTag()).AddUObject(this, &AFHS_BaseHero::OnPlayerStunChanged);
 
 		if (HeroData != nullptr)
 		{
@@ -125,7 +125,7 @@ void AFHS_BaseHero::SpeedUpdated(const FOnAttributeChangeData& AttributeData)
 
 void AFHS_BaseHero::HealthUpdated(const FOnAttributeChangeData& AttributeData)
 {
-	if (bDead || !FMath::IsNearlyZero(AttributeData.NewValue))
+	if (bDead || !FMath::IsNearlyZero(AttributeData.NewValue, 0.01f))
 	{
 		return;
 	}

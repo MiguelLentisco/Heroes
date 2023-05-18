@@ -22,7 +22,8 @@ UFHS_GA_FireWeapon::UFHS_GA_FireWeapon()
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	
-	ActivationBlockedTags.AddTag(TAG_Status_Stunnned.GetTag());
+	ActivationBlockedTags.AddTag(TAG_Status_Stunned.GetTag());
+	ActivationBlockedTags.AddTag(TAG_Status_Dead.GetTag());
 	
 	CooldownGameplayEffectClass = UFHS_GE_ApplyCooldown::StaticClass();
 	bUseScalarCooldown = false;
@@ -60,7 +61,7 @@ void UFHS_GA_FireWeapon::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 
 	// PlaySound
 	FGameplayCueParameters CueParameters;
-	CueParameters.Instigator = Weapon;
+	CueParameters.Instigator = Hero;
 	CueParameters.Location = Weapon->GetActorLocation();
 	ActorInfo->AbilitySystemComponent->ExecuteGameplayCue(SoundGCTag, CueParameters);
 	

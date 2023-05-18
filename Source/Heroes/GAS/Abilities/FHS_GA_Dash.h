@@ -21,6 +21,9 @@ protected:
 	FScalableFloat DashSpeed = FScalableFloat(2500.f);
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Dash)
 	FScalableFloat DashDuration = FScalableFloat(.2f);
+
+	UPROPERTY(EditDefaultsOnly, Category = Fire, Meta = (Categories = "GameplayCue"))
+	FGameplayTag CGTag;
 	
 	UFUNCTION()
 	void OnDashEnded();

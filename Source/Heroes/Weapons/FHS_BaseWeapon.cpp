@@ -81,6 +81,27 @@ void AFHS_BaseWeapon::SetMainWeapon(bool bNewMainWeapon)
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+void AFHS_BaseWeapon::InitStats()
+{
+	if (WeaponData == nullptr || HeroOwner == nullptr)
+	{
+		return;
+	}
+
+	UAbilitySystemComponent* ASC = HeroOwner->GetAbilitySystemComponent();
+	for (const FAttributeDefaults& Attribute : WeaponData->Attributes)
+	{
+		ASC->InitStats(Attribute.Attributes, Attribute.DefaultStartingTable);
+	}
+	for (const TSoftClassPtr<UGameplayEffect>& GEClass : WeaponData->InitialEffects)
+	{
+		ASC->BP_ApplyGameplayEffectToSelf(GEClass.LoadSynchronous(), 1, ASC->MakeEffectContext());
+	}
+	
+} // InitStats
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 void AFHS_BaseWeapon::SetupInput(bool bEnable)
 {
 	if (bInputSet == bEnable || WeaponData == nullptr || HeroOwner == nullptr || HeroOwner->InputComponent == nullptr)
@@ -211,14 +232,7 @@ void AFHS_BaseWeapon::InitGAS()
 
 	UAbilitySystemComponent* ASC = HeroOwner->GetAbilitySystemComponent();
 	ASC->SetTagMapCount(WeaponData->Name, 1);
-	for (const FAttributeDefaults& Attribute : WeaponData->Attributes)
-	{
-		ASC->InitStats(Attribute.Attributes, Attribute.DefaultStartingTable);
-	}
-	for (const TSoftClassPtr<UGameplayEffect>& GEClass : WeaponData->InitialEffects)
-	{
-		ASC->BP_ApplyGameplayEffectToSelf(GEClass.LoadSynchronous(), 1, ASC->MakeEffectContext());
-	}
+	InitStats();
 	
 } // InitGAS
 

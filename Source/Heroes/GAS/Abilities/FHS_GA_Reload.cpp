@@ -16,7 +16,8 @@ UFHS_GA_Reload::UFHS_GA_Reload()
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 
-	ActivationBlockedTags.AddTag(TAG_Status_Stunnned.GetTag());
+	ActivationBlockedTags.AddTag(TAG_Status_Stunned.GetTag());
+	ActivationBlockedTags.AddTag(TAG_Status_Dead.GetTag());
 	
 } // UFHS_GA_Reload
 
@@ -61,6 +62,9 @@ void UFHS_GA_Reload::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	ReloadTask = UAbilityTask_WaitDelay::WaitDelay(this, ReloadingTime);
 	ReloadTask->OnFinish.AddDynamic(this, &UFHS_GA_Reload::OnReloadFinished);
 	ReloadTask->Activate();
+
+	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+	ASC->ExecuteGameplayCue(CGTag, ASC->MakeEffectContext());
 	
 } // ActivateAbility
 

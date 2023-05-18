@@ -19,13 +19,15 @@ UFHS_GA_Dash::UFHS_GA_Dash()
 	AbilityTags.AddTag(TAG_Name_Ability_Dash.GetTag());
 	
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	ActivationBlockedTags.AddTag(TAG_Status_Stunnned.GetTag());
+	ActivationBlockedTags.AddTag(TAG_Status_Stunned.GetTag());
+	ActivationBlockedTags.AddTag(TAG_Status_Dead.GetTag());
 	CancelAbilitiesWithTag.AddTag(TAG_Name_Ability_Reload.GetTag());
 	
 	CooldownGameplayEffectClass = UFHS_GE_ApplyCooldown::StaticClass();
 	bUseScalarCooldown = true;
 	CooldownScalar = 5.f;
 	CooldownTags.AddTag(TAG_Cooldown_Ability_Dash.GetTag());
+	
 	
 } // UFHS_GA_Dash
 
@@ -70,6 +72,9 @@ void UFHS_GA_Dash::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	UFHS_AT_Dash* Task = UFHS_AT_Dash::Dash(this, WorldDirection, Speed, Duration);
 	Task->DashEnded.AddDynamic(this, &UFHS_GA_Dash::OnDashEnded);
 	Task->ReadyForActivation();
+
+	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+	ASC->ExecuteGameplayCue(CGTag, ASC->MakeEffectContext());
 	
 } // ActivateAbility
 

@@ -18,7 +18,7 @@ void UFHS_UW_HUD::OnHeroInputChangedInput(UAbilitySystemComponent* ASC, bool bSe
 	{
 		ASC->RegisterGameplayTagEvent(TAG_Status_Dead, EGameplayTagEventType::AnyCountChange).AddUObject(
 			this, &UFHS_UW_HUD::OnDeadChanged);
-		ASC->RegisterGameplayTagEvent(TAG_Status_Stunnned, EGameplayTagEventType::AnyCountChange).AddUObject(
+		ASC->RegisterGameplayTagEvent(TAG_Status_Stunned, EGameplayTagEventType::AnyCountChange).AddUObject(
 			this, &UFHS_UW_HUD::OnStunChanged);
 		IFHS_GASListener::Execute_SetupWithGAS(AttributesHUD, ASC);
 		IFHS_GASListener::Execute_SetupWithGAS(AbilitiesHUD, ASC);
@@ -26,7 +26,7 @@ void UFHS_UW_HUD::OnHeroInputChangedInput(UAbilitySystemComponent* ASC, bool bSe
 	else
 	{
 		ASC->RegisterGameplayTagEvent(TAG_Status_Dead, EGameplayTagEventType::AnyCountChange).RemoveAll(this);
-		ASC->RegisterGameplayTagEvent(TAG_Status_Stunnned, EGameplayTagEventType::AnyCountChange).RemoveAll(this);
+		ASC->RegisterGameplayTagEvent(TAG_Status_Stunned, EGameplayTagEventType::AnyCountChange).RemoveAll(this);
 		IFHS_GASListener::Execute_CleanFromGAS(AttributesHUD, ASC);
 		IFHS_GASListener::Execute_CleanFromGAS(AbilitiesHUD, ASC);
 	}
