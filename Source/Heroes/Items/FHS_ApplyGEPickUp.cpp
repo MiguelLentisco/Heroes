@@ -10,15 +10,15 @@
 AFHS_GeneralPickUp::AFHS_GeneralPickUp()
 {
 	PrimaryActorTick.bCanEverTick = false;
-
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	SetRootComponent(Mesh);
-	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
+	
 	Trigger = CreateDefaultSubobject<UFHS_PickUpComponent>(TEXT("PickUp"));
-	Trigger->SetupAttachment(Mesh);
+	SetRootComponent(Trigger);
 	Trigger->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Trigger->bHideAndRespawn = true;
+
+	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	Mesh->SetupAttachment(Trigger);
+	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	
 } // AFHS_GeneralPickUp
 
@@ -28,6 +28,11 @@ void AFHS_GeneralPickUp::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (!HasAuthority())
+	{
+		return;
+	}
+	
 	Trigger->OnPickUp.AddDynamic(this, &AFHS_GeneralPickUp::TriggerEffects);
 	
 } // BeginPlay
