@@ -14,6 +14,8 @@
 #include "Heroes/GAS/FHS_AbilitySystemComponent.h"
 #include "Heroes/GAS/FHS_GameplayTags.h"
 #include "Heroes/GAS/Attributes/FHS_Attributes_CharacterCore.h"
+#include "Heroes/GAS/Effects/FHS_GE_KillPlayer.h"
+#include "Heroes/Player/FHS_PlayerState.h"
 #include "Heroes/Weapons/FHS_BaseWeapon.h"
 #include "Net/UnrealNetwork.h"
 
@@ -140,14 +142,40 @@ void AFHS_BaseHero::SpeedUpdated(const FOnAttributeChangeData& AttributeData)
 
 void AFHS_BaseHero::HealthUpdated(const FOnAttributeChangeData& AttributeData)
 {
-	if (AttributeData.NewValue < AttributeData.OldValue && AttributeData.GEModData != nullptr)
+	// Effect from GE, apply effects
+	if (AttributeData.GEModData != nullptr && !FMath::IsNearlyEqual(AttributeData.NewValue, AttributeData.OldValue, 0.1f))
 	{
-		ASC->ExecuteGameplayCue(GCWoundTag, AttributeData.GEModData->EffectSpec.GetContext());
+		if (AttributeData.NewValue < AttributeData.OldValue)
+		{
+			ASC->ExecuteGameplayCue(GCWoundTag, AttributeData.GEModData->EffectSpec.GetContext());
+		}
+		else
+		{
+			ASC->ExecuteGameplayCue(GCHealTag, AttributeData.GEModData->EffectSpec.GetContext());
+		}
 	}
 	
 	if (bDead || !FMath::IsNearlyZero(AttributeData.NewValue, 0.01f))
 	{
 		return;
+	}
+
+	// Update Kills if killed by another player
+	if (AttributeData.GEModData != nullptr)
+	{
+		if (auto* OtherHero = Cast<AFHS_BaseHero>(AttributeData.GEModData->EffectSpec.GetContext().GetInstigator()))
+		{
+			if (auto* PS = Cast<AFHS_PlayerState>(OtherHero->GetPlayerState()))
+			{
+				PS->AddKill();
+			}
+		}
+	}
+
+	// Update deaths if player
+	if (auto* PS = Cast<AFHS_PlayerState>(GetPlayerState()))
+	{
+		PS->AddDeath();
 	}
 
 	KillHero();
@@ -158,9 +186,13 @@ void AFHS_BaseHero::HealthUpdated(const FOnAttributeChangeData& AttributeData)
 
 void AFHS_BaseHero::KillHero()
 {
+	if (bDead)
+	{
+		return;
+	}
+	
 	bDead = true;
-	ASC->SetNumericAttributeBase(UFHS_Attributes_CharacterCore::GetCurrentHealthAttribute(), 0.f);
-	ASC->SetTagMapCount(TAG_Status_Dead, 1);
+	ASC->BP_ApplyGameplayEffectToSelf(UFHS_GE_KillPlayer::StaticClass(), 1, ASC->MakeEffectContext());
 	ASC->ExecuteGameplayCue(GCDead, ASC->MakeEffectContext());
 	
 } // KillHero
@@ -172,13 +204,19 @@ void AFHS_BaseHero::OnPlayerDeadChanged(const FGameplayTag DeadTag, int32 NumCou
 	bDead = NumCount > 0;
 	if (bDead)
 	{
-		ASC->ExecuteGameplayCue(GCWoundTag, ASC->MakeEffectContext());
 		ASC->CancelAllAbilities();
-		ASC->RemoveActiveEffects({});
+		ASC->RemoveActiveEffects(
+			FGameplayEffectQuery::MakeQuery_MatchNoEffectTags(TAG_Status_Dead.GetTag().GetSingleTagContainer()));
 	}
 	else
 	{
+		bInitStatsDueDeath = true;
 		InitStats();
+		bInitStatsDueDeath = false;
+		if (CurrentWeapon != nullptr)
+		{
+			CurrentWeapon->InitStats();
+		}
 	}
 
 	OnRep_bDead();

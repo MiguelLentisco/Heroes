@@ -14,6 +14,5 @@ public:
 
 	void OnPlayerDead(APlayerController* PC);
 	void RespawnPlayerDead(APlayerController* PC);
-
 	
 }; // AFHS_MainGameMode

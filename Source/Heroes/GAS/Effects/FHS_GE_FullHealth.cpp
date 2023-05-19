@@ -16,11 +16,11 @@ UFHS_GE_FullHealth::UFHS_GE_FullHealth()
 	AttributeDef.AttributeSource = EGameplayEffectAttributeCaptureSource::Source;
 	AttributeDef.bSnapshot = false;
 	AttributeDef.AttributeToCapture = UFHS_Attributes_CharacterCore::GetMaxHealthAttribute();
-	FAttributeBasedFloat AmmoClip;
+	FAttributeBasedFloat MaxHealth;
 	
-	AmmoClip.AttributeCalculationType = EAttributeBasedFloatCalculationType::AttributeMagnitude;
-	AmmoClip.BackingAttribute = AttributeDef;
-	ModifierInfo.ModifierMagnitude = AmmoClip;
+	MaxHealth.AttributeCalculationType = EAttributeBasedFloatCalculationType::AttributeMagnitude;
+	MaxHealth.BackingAttribute = AttributeDef;
+	ModifierInfo.ModifierMagnitude = MaxHealth;
 
 	Modifiers.Add(ModifierInfo);
 	

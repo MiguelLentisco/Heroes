@@ -17,7 +17,7 @@ UFHS_GA_UltBomb::UFHS_GA_UltBomb()
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 
-	CancelAbilitiesWithTag.AddTag(TAG_Name_Ability_Reload.GetTag());
+	CancelAbilitiesWithTag.AddTag(TAG_Status_AbilityCancelable.GetTag());
 	ActivationBlockedTags.AddTag(TAG_Status_Stunned.GetTag());
 	ActivationBlockedTags.AddTag(TAG_Status_Dead.GetTag());
 

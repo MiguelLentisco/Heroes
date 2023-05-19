@@ -18,6 +18,9 @@ class HEROES_API UFHS_PickUpComponent : public USphereComponent
 public:
 	UFHS_PickUpComponent();
 
+	UPROPERTY(Replicated, ReplicatedUsing = "OnRep_bPickedUp")
+	bool bPickedUp = false;
+
 	/** Delegate to whom anyone can subscribe to receive this event */
 	UPROPERTY(BlueprintAssignable, Category = "Interaction")
 	FOnPickUp OnPickUp;
@@ -27,14 +30,19 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (EditCondition = "bHideAndRespawn", ClampMin = 0))
 	float RespawnTime = 30.f;
-	
-protected:
-	FTimerHandle RespawnTimer;
-	
 
+	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	UFUNCTION()
+	void OnRep_bPickedUp();
+
+protected:
+	FTimerHandle RespawnTimer;
+	
 	UFUNCTION()
 	void OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	                          UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,

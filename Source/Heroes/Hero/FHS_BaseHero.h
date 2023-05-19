@@ -44,6 +44,7 @@ public:
 	AFHS_BaseWeapon* GetCurrentWeapon() const { return CurrentWeapon; }
 	bool IsInputSet() const { return bInputSet; }
 	bool IsInputBlocked() const;
+	bool IsInitStatsDueDeath() const { return bInitStatsDueDeath; }
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
@@ -84,6 +85,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = Hero, Meta = (Categories = "GameplayCue"))
 	FGameplayTag GCWoundTag;
+
+	UPROPERTY(EditDefaultsOnly, Category = Hero, Meta = (Categories = "GameplayCue"))
+	FGameplayTag GCHealTag;
 	
 	UPROPERTY(EditDefaultsOnly, Category = Hero, Meta = (Categories = "GameplayCue"))
 	FGameplayTag GCDead;
@@ -96,6 +100,7 @@ protected:
 
 	FTransform MeshOriginalTransform;
 
+	bool bInitStatsDueDeath = false;
 	bool bInputSet = false;
 	bool bStunned = false;
 

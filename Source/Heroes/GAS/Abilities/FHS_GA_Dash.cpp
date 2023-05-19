@@ -21,7 +21,7 @@ UFHS_GA_Dash::UFHS_GA_Dash()
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	ActivationBlockedTags.AddTag(TAG_Status_Stunned.GetTag());
 	ActivationBlockedTags.AddTag(TAG_Status_Dead.GetTag());
-	CancelAbilitiesWithTag.AddTag(TAG_Name_Ability_Reload.GetTag());
+	CancelAbilitiesWithTag.AddTag(TAG_Status_AbilityCancelable.GetTag());
 	
 	CooldownGameplayEffectClass = UFHS_GE_ApplyCooldown::StaticClass();
 	bUseScalarCooldown = true;

@@ -1,6 +1,7 @@
 ﻿#include "FHS_Attributes_CharacterCore.h"
 
 #include "GameplayEffectExtension.h"
+#include "Heroes/Hero/FHS_BaseHero.h"
 #include "Net/UnrealNetwork.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -100,6 +101,12 @@ void UFHS_Attributes_CharacterCore::ClampAttributes(const FGameplayAttribute& At
 
 void UFHS_Attributes_CharacterCore::InitFromMetaDataTable(const UDataTable* DataTable)
 {
+	const float OldCurrentHealth = CurrentHealth.GetBaseValue();
+	const float OldMaxHealth = MaxHealth.GetBaseValue();
+	float OldCurrentUltPower = CurrentUltimatePower.GetBaseValue();
+	const float OldMaxUltPower = MaxUltimatePower.GetBaseValue();
+	const float OldSpeed = Speed.GetBaseValue();
+	
 	Super::InitFromMetaDataTable(DataTable);
 
 	UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
@@ -108,11 +115,20 @@ void UFHS_Attributes_CharacterCore::InitFromMetaDataTable(const UDataTable* Data
 		return;
 	}
 
-	OnRep_CurrentHealth(CurrentHealth.GetBaseValue());
-	OnRep_MaxHealth(MaxHealth.GetBaseValue());
-	OnRep_CurrentUltPower(CurrentUltimatePower.GetBaseValue());
-	OnRep_MaxUltPower(MaxUltimatePower.GetBaseValue());
-	OnRep_Speed(Speed.GetBaseValue());
+	// Don't erase ulti power
+	if (const auto* Hero = Cast<AFHS_BaseHero>(ASC->GetOwner()))
+	{
+		if (Hero->IsInitStatsDueDeath())
+		{
+			CurrentUltimatePower.SetBaseValue(OldCurrentUltPower);
+		}
+	}
+
+	OnRep_CurrentHealth(OldCurrentHealth);
+	OnRep_MaxHealth(OldMaxHealth);
+	OnRep_CurrentUltPower(OldCurrentUltPower);
+	OnRep_MaxUltPower(OldMaxUltPower);
+	OnRep_Speed(OldSpeed);
 	
 } // InitFromMetaDataTable
 

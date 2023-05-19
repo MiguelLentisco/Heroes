@@ -5,8 +5,33 @@
 #include "FHS_UW_UltimateAbility.h"
 #include "FHS_UW_Weapon.h"
 #include "Heroes/GAS/FHS_GameplayTags.h"
+#include "Heroes/Player/FHS_PlayerState.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
+
+void UFHS_UW_HUD::RegisterCallbacks()
+{
+	GetWorld()->GetTimerManager().SetTimer(SetCallbacksTimer, this, &UFHS_UW_HUD::TryBindCallbacks, 0.1f, true);
+	TryBindCallbacks();
+	
+} // Initialize
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void UFHS_UW_HUD::BeginDestroy()
+{
+	if (auto* PS = GetOwningPlayerState<AFHS_PlayerState>())
+	{
+		PS->OnNumDeathsChanged.RemoveAll(this);
+		PS->OnNumKillsChanged.RemoveAll(this);
+	}
+	
+	Super::BeginDestroy();
+	
+} // BeginDestroy
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 
 void UFHS_UW_HUD::OnHeroInputChangedInput(UAbilitySystemComponent* ASC, bool bSet)
 {
@@ -55,6 +80,22 @@ void UFHS_UW_HUD::OnHeroWeaponInputChangedInput(UAbilitySystemComponent* ASC, bo
 	}
 	
 } // OnHeroWeaponInputChangedInput
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void UFHS_UW_HUD::TryBindCallbacks()
+{
+	auto* PS = GetOwningPlayerState<AFHS_PlayerState>();
+	if (PS == nullptr)
+	{
+		return;
+	}
+	
+	PS->OnNumDeathsChanged.AddUObject(this, &UFHS_UW_HUD::SetNumDeaths);
+	PS->OnNumKillsChanged.AddUObject(this, &UFHS_UW_HUD::SetNumKills);
+	GetWorld()->GetTimerManager().ClearTimer(SetCallbacksTimer);
+	
+} // TryBindCallbacks
 
 // ---------------------------------------------------------------------------------------------------------------------
 

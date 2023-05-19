@@ -33,10 +33,17 @@ void AFHS_MainGameMode::RespawnPlayerDead(APlayerController* PC)
 	{
 		return;
 	}
-
-	FString OutError;
-	UpdatePlayerStartSpot(PC, FString(), OutError);
-	Hero->GetAbilitySystemComponent()->SetTagMapCount(TAG_Status_Dead.GetTag(), 0);
+	
+	Hero->GetAbilitySystemComponent()->RemoveActiveEffectsWithAppliedTags(FGameplayTagContainer(TAG_Status_Dead.GetTag()));
+	const AActor* const StartSpot = FindPlayerStart(PC, FString());
+	if (StartSpot == nullptr)
+	{
+		return;
+	}
+	
+	const FRotator Rotation = StartSpot->GetActorRotation();
+	PC->GetPawn()->SetActorLocationAndRotation(StartSpot->GetActorLocation(), Rotation);
+	PC->SetControlRotation(Rotation);
 	
 } // RespawnPlayerDead
 

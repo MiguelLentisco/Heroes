@@ -72,12 +72,13 @@ void AFHS_HUD::BeginPlay()
 
 	CreateHUD();
 	
-
 	Hero = Cast<AFHS_BaseHero>(GetOwningPawn());
 	if (Hero == nullptr)
 	{
 		return;
 	}
+
+	MainHUD->RegisterCallbacks();
 
 	Hero->GetAbilitySystemComponent()->RegisterGameplayTagEvent(TAG_Status_Immunity).AddUObject(
 		this, &AFHS_HUD::OnSafeZone);

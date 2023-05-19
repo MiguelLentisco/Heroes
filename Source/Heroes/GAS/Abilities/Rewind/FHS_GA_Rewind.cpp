@@ -20,7 +20,7 @@ UFHS_GA_Rewind::UFHS_GA_Rewind()
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 
-	CancelAbilitiesWithTag.AddTag(TAG_Name_Ability_Reload.GetTag());
+	CancelAbilitiesWithTag.AddTag(TAG_Status_AbilityCancelable.GetTag());
 	
 	bUseScalarCooldown = true;
 	CooldownScalar = 15.f;

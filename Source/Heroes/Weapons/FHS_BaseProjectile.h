@@ -11,6 +11,7 @@
 class USphereComponent;
 class UProjectileMovementComponent;
 class UAbilitySystemComponent;
+class UGameplayEffect;
 
 UCLASS()
 class HEROES_API AFHS_BaseProjectile : public AActor
@@ -36,6 +37,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Bullet)
 	FScalableFloat DamageValue = -10.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Bullet)
+	TSubclassOf<UGameplayEffect> DamageGE;
 
 	UPROPERTY(EditDefaultsOnly, Category = Bullet, Meta = (Categories = "GameplayCue"))
 	FGameplayTag GCTag;

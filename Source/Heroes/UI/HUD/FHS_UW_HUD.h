@@ -15,6 +15,9 @@ class HEROES_API UFHS_UW_HUD : public UUserWidget
 	GENERATED_BODY()
 	
 public:
+	void RegisterCallbacks();
+	virtual void BeginDestroy() override;
+	
 	void OnHeroInputChangedInput(UAbilitySystemComponent* ASC, bool bSet);
 	void OnHeroWeaponInputChangedInput(UAbilitySystemComponent* ASC, bool bSet);
 
@@ -22,6 +25,11 @@ public:
 	void OnDeadChanged(const FGameplayTag Tag, int32 TagCount);
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void OnStunChanged(const FGameplayTag Tag, int32 TagCount);
+
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	void SetNumKills(int32 NumKills);
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	void SetNumDeaths(int32 NumDeaths);
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (BindWidget))
@@ -35,5 +43,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (BindWidget))
 	TObjectPtr<UFHS_UW_UltimateAbility> UltimateAbilityHUD;
+
+	FTimerHandle SetCallbacksTimer;
+
+	void TryBindCallbacks();
 	
 }; // UFHS_UW_HUD

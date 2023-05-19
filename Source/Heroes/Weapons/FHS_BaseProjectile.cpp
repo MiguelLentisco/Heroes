@@ -38,6 +38,8 @@ AFHS_BaseProjectile::AFHS_BaseProjectile()
 	InitialLifeSpan = 3.0f;
 
 	bReplicates = true;
+
+	DamageGE = UFHS_GE_MakeDamage::StaticClass();
 	
 } // AFHS_BaseProjectile
 
@@ -75,7 +77,7 @@ void AFHS_BaseProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor
 	}
 	else
 	{
-		GEHandle = ASC->MakeOutgoingSpec(UFHS_GE_MakeDamage::StaticClass(), 1, ASC->MakeEffectContext());
+		GEHandle = ASC->MakeOutgoingSpec(DamageGE, 1, ASC->MakeEffectContext());
 	}
 
 	GEHandle.Data->SetSetByCallerMagnitude(TAG_Data_Damage, DamageValue.GetValueAtLevel(1));

@@ -1,4 +1,4 @@
-﻿#include "FHS_GeneralPickUp.h"
+﻿#include "FHS_ApplyGEPickUp.h"
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
@@ -7,7 +7,7 @@
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-AFHS_GeneralPickUp::AFHS_GeneralPickUp()
+AFHS_ApplyGEPickUp::AFHS_ApplyGEPickUp()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	
@@ -20,11 +20,11 @@ AFHS_GeneralPickUp::AFHS_GeneralPickUp()
 	Mesh->SetupAttachment(Trigger);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	
-} // AFHS_GeneralPickUp
+} // AFHS_ApplyGEPickUp
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_GeneralPickUp::BeginPlay()
+void AFHS_ApplyGEPickUp::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -33,13 +33,13 @@ void AFHS_GeneralPickUp::BeginPlay()
 		return;
 	}
 	
-	Trigger->OnPickUp.AddDynamic(this, &AFHS_GeneralPickUp::TriggerEffects);
+	Trigger->OnPickUp.AddDynamic(this, &AFHS_ApplyGEPickUp::TriggerEffects);
 	
 } // BeginPlay
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_GeneralPickUp::TriggerEffects(ACharacter* Character)
+void AFHS_ApplyGEPickUp::TriggerEffects(ACharacter* Character)
 {
 	const auto* AbilityInterface = Cast<IAbilitySystemInterface>(Character);
 	if (AbilityInterface == nullptr)

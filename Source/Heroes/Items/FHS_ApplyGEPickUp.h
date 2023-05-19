@@ -1,17 +1,17 @@
 ﻿#pragma once
 
-#include "FHS_GeneralPickUp.generated.h"
+#include "FHS_ApplyGEPickUp.generated.h"
 
 class UGameplayEffect;
 class UFHS_PickUpComponent;
 
 UCLASS()
-class HEROES_API AFHS_GeneralPickUp : public AActor
+class HEROES_API AFHS_ApplyGEPickUp : public AActor
 {
 	GENERATED_BODY()
 	
 public:
-	AFHS_GeneralPickUp();
+	AFHS_ApplyGEPickUp();
 
 	virtual void BeginPlay() override;
 
@@ -28,4 +28,4 @@ protected:
 	UFUNCTION()
 	void TriggerEffects(ACharacter* Character);
 	
-}; // AFHS_GeneralPickUp
+}; // AFHS_ApplyGEPickUp

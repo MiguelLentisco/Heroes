@@ -1,10 +1,12 @@
 ﻿#include "FHS_BaseWeapon.h"
 
+#include "AIController.h"
 #include "FHS_BaseProjectile.h"
 #include "Heroes/Data/FHS_AbilityMeshData.h"
 #include "Heroes/GAS/FHS_AbilitySet.h"
 #include "Heroes/GAS/FHS_AbilitySystemComponent.h"
 #include "Heroes/Hero/FHS_BaseHero.h"
+#include "Heroes/IA/FHS_AIC_Enemy.h"
 #include "Net/UnrealNetwork.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -130,9 +132,20 @@ void AFHS_BaseWeapon::PrimaryFire(const TSubclassOf<AFHS_BaseProjectile>& Projec
 	{
 		return;
 	}
+
+	const FVector MuzzlePoint = Mesh->GetSocketLocation(TEXT("Muzzle"));
+	FRotator SpawnRotation = HeroOwner->GetControlRotation();
 	
-	const FRotator SpawnRotation = HeroOwner->GetControlRotation();
-	const FVector SpawnLocation = Mesh->GetSocketLocation(TEXT("Muzzle")) + SpawnRotation.RotateVector(MuzzleOffset);
+	// Auto aim for AIs since I can't deal with IKs rn
+	if (auto* AIC = Cast<AFHS_AIC_Enemy>(HeroOwner->GetController()))
+	{
+		APawn* Target = Cast<APawn>(AIC->GetHeroTarget());
+		const FVector Dir = (Target->GetActorLocation() + FVector(0.f, 0.f, 35.f) - MuzzlePoint).GetSafeNormal();
+		SpawnRotation = FRotationMatrix::MakeFromX(Dir).Rotator();
+	}
+
+	const FVector SpawnLocation = MuzzlePoint + SpawnRotation.RotateVector(MuzzleOffset);
+	
 	FActorSpawnParameters SpawnParameters;
 	SpawnParameters.SpawnCollisionHandlingOverride =
 		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;

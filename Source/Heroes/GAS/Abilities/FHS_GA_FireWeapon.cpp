@@ -29,7 +29,7 @@ UFHS_GA_FireWeapon::UFHS_GA_FireWeapon()
 	bUseScalarCooldown = false;
 	CooldownAttribute = UFHS_Attributes_Weapon::GetFireRateAttribute();
 	CooldownTags.AddTag(TAG_Cooldown_Ability_FireWeapon.GetTag());
-	CancelAbilitiesWithTag.AddTag(TAG_Name_Ability_Reload.GetTag());
+	CancelAbilitiesWithTag.AddTag(TAG_Status_AbilityCancelable.GetTag());
 
 	// Cost 1 ammo
 	FGameplayModifierInfo Cost;

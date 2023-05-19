@@ -10,8 +10,9 @@
 
 UFHS_GA_Reload::UFHS_GA_Reload()
 {
-	AbilityTags.AddTag(TAG_Name_Ability_Reload.GetTag());
+	AbilityTags.AddTag(TAG_Status_AbilityCancelable.GetTag());
 	ActivationOwnedTags.AddTag(TAG_Status_Reloading.GetTag());
+	CancelAbilitiesWithTag.AddTag(TAG_Status_AbilityCancelable.GetTag());
 
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;

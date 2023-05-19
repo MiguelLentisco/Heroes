@@ -14,6 +14,7 @@ class HEROES_API AFHS_AIC_Enemy : public AAIController
 public:
 	AFHS_AIC_Enemy();
 
+	AActor* GetHeroTarget() const { return HeroTarget; }
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
