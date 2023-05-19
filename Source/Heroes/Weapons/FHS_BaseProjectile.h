@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "ScalableFloat.h"
 #include "GameFramework/Actor.h"
 #include "FHS_BaseProjectile.generated.h"
@@ -33,8 +34,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	UProjectileMovementComponent* ProjectileMovement;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Bullet)
 	FScalableFloat DamageValue = -10.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = Bullet, Meta = (Categories = "GameplayCue"))
+	FGameplayTag GCTag;
 
 	UPROPERTY()
 	TWeakObjectPtr<UAbilitySystemComponent> InstigatorUSC;

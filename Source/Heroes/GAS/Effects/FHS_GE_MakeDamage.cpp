@@ -7,6 +7,7 @@
 
 UFHS_GE_MakeDamage::UFHS_GE_MakeDamage()
 {
+	InheritableGameplayEffectTags.AddTag(TAG_Effect_Damage.GetTag());
 	DurationPolicy = EGameplayEffectDurationType::Instant;
 	
 	FGameplayModifierInfo ModifierInfo;

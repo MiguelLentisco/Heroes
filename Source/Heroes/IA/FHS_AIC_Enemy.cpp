@@ -2,9 +2,13 @@
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
+#include "BrainComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Heroes/GAS/FHS_GameplayTags.h"
+#include "Heroes/GAS/Attributes/FHS_Attributes_CharacterCore.h"
 #include "Heroes/GAS/Attributes/FHS_Attributes_Weapon.h"
 #include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISense_Sight.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -20,6 +24,11 @@ AFHS_AIC_Enemy::AFHS_AIC_Enemy()
 void AFHS_AIC_Enemy::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
+
+	if (BehaviorTree == nullptr)
+	{
+		return;
+	}
 	
 	if (const auto* AbilityInterface = Cast<IAbilitySystemInterface>(InPawn))
 	{
@@ -27,16 +36,35 @@ void AFHS_AIC_Enemy::OnPossess(APawn* InPawn)
 		{
 			ASC->GetGameplayAttributeValueChangeDelegate(UFHS_Attributes_Weapon::GetCurrentAmmoAttribute()).AddUObject(
 				this, &AFHS_AIC_Enemy::OnCurrentAmmoChanged);
+			ASC->GetGameplayAttributeValueChangeDelegate(UFHS_Attributes_CharacterCore::GetCurrentHealthAttribute()).AddUObject(
+				this, &AFHS_AIC_Enemy::OnCurrentHealthChanged);
+			ASC->RegisterGameplayTagEvent(TAG_Status_Dead.GetTag()).AddUObject(this, &AFHS_AIC_Enemy::OnPawnDead);
 		}
 	}
-
-	if (BehaviorTree == nullptr)
-	{
-		return;
-	}
+	
 	RunBehaviorTree(BehaviorTree);
 	
 } // OnPossess
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_AIC_Enemy::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (const auto* AbilityInterface = Cast<IAbilitySystemInterface>(GetPawn()))
+	{
+		if (UAbilitySystemComponent* ASC = AbilityInterface->GetAbilitySystemComponent())
+		{
+			ASC->GetGameplayAttributeValueChangeDelegate(UFHS_Attributes_Weapon::GetCurrentAmmoAttribute()).RemoveAll(this);
+			ASC->GetGameplayAttributeValueChangeDelegate(UFHS_Attributes_CharacterCore::GetCurrentHealthAttribute()).
+				 RemoveAll(this);
+		}
+	}
+
+	GetWorldTimerManager().ClearTimer(StopChaseTarget);
+	
+	Super::EndPlay(EndPlayReason);
+	
+} // EndPlay
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -130,12 +158,21 @@ void AFHS_AIC_Enemy::UpdateTargetSight(bool bTargetVision)
 
 void AFHS_AIC_Enemy::UpdateTarget(AActor* NewHeroTarget)
 {
+	if (HeroTarget != nullptr)
+	{
+		UAbilitySystemComponent* ASC = Cast<IAbilitySystemInterface>(HeroTarget)->GetAbilitySystemComponent();
+		ASC->RegisterGameplayTagEvent(TAG_Status_Dead.GetTag()).RemoveAll(this);
+	}
+	
 	if (NewHeroTarget != nullptr)
 	{
 		LastActorSet = FDateTime::Now();
 		UpdateTargetSight(true);
+		UAbilitySystemComponent* ASC = Cast<IAbilitySystemInterface>(NewHeroTarget)->GetAbilitySystemComponent();
+		ASC->RegisterGameplayTagEvent(TAG_Status_Dead.GetTag()).AddUObject(this, &AFHS_AIC_Enemy::OnTargetDead);
 	}
-	
+
+	HeroTarget = NewHeroTarget;
 	GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), NewHeroTarget);
 	
 } // UpdateTarget
@@ -171,5 +208,41 @@ void AFHS_AIC_Enemy::OnCurrentHealthChanged(const FOnAttributeChangeData& Data)
 	UpdateLowHealth(Data.NewValue <= LowHealthThreshold);
 	
 } // OnCurrentHealthChanged
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_AIC_Enemy::OnPawnDead(FGameplayTag DeadTag, int32 NumCounts)
+{
+	if (NumCounts <= 0)
+	{
+		return;
+	}
+	
+	GetBrainComponent()->StopLogic(TEXT("Dead"));
+	GetPerceptionComponent()->SetSenseEnabled(UAISense_Sight::StaticClass(), false);
+	
+	FTimerHandle AuxTimer;
+	GetWorldTimerManager().SetTimer(AuxTimer, this, &AFHS_AIC_Enemy::DestroyWhenDead, TimeUntilDespawn, false);
+	
+} // OnPawnDead
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_AIC_Enemy::OnTargetDead(FGameplayTag DeadTag, int32 NumCounts)
+{
+	HeroesDetected.Remove(HeroTarget);
+	UpdateTarget(FindNearestHero());
+	UpdateTargetSight(!HeroesDetected.IsEmpty());
+	
+} // OnTargetDead
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_AIC_Enemy::DestroyWhenDead()
+{
+	GetPawn()->Destroy();
+	Destroy();
+	
+} // DestroyWhenDead
 
 // ---------------------------------------------------------------------------------------------------------------------

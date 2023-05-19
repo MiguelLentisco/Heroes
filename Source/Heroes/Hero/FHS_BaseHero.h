@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayTagContainer.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "FHS_BaseHero.generated.h"
@@ -47,14 +48,17 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	
 	void SpeedUpdated(const FOnAttributeChangeData& AttributeData);
 	void HealthUpdated(const FOnAttributeChangeData& AttributeData);
 
+	UFUNCTION(BlueprintCallable)
 	void KillHero();
 	
 	UFUNCTION(Server, Reliable)
 	void SetHeroData(UFHS_HeroData* NewHeroData);
+	void InitStats();
 
 	void OnPlayerDeadChanged(const FGameplayTag DeadTag, int32 NumCount);
 	void OnPlayerStunChanged(const FGameplayTag StunTag, int32 NumCount);
@@ -78,6 +82,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Hero)
 	TArray<TObjectPtr<AFHS_BaseWeapon>> Weapons;
 
+	UPROPERTY(EditDefaultsOnly, Category = Hero, Meta = (Categories = "GameplayCue"))
+	FGameplayTag GCWoundTag;
+	
+	UPROPERTY(EditDefaultsOnly, Category = Hero, Meta = (Categories = "GameplayCue"))
+	FGameplayTag GCDead;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Hero)
 	FName Hand3PSocket = TEXT("middle_01_rSocket");
 
@@ -95,8 +105,7 @@ protected:
 	void OnRep_HeroData(UFHS_HeroData* PreviousData);
 	UFUNCTION()
 	void OnRep_CurrentWeapon();
-
-	void InitStats();
+	
 	void SetupGAS();
 	void SetupWeapons();
 	void SetupMeshes();
@@ -140,9 +149,11 @@ private:
 	void BindMovementActions(UInputComponent* PlayerInputComponent);
 
 	/** Called for movement input */
+	UFUNCTION(NetMulticast, Unreliable)
 	void Move(const FInputActionValue& Value);
 
 	/** Called for looking input */
+	UFUNCTION(NetMulticast, Unreliable)
 	void Look(const FInputActionValue& Value);
 
 #pragma endregion // FPS_Template

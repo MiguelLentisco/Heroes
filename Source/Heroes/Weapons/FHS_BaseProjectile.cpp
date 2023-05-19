@@ -80,6 +80,13 @@ void AFHS_BaseProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor
 
 	GEHandle.Data->SetSetByCallerMagnitude(TAG_Data_Damage, DamageValue.GetValueAtLevel(1));
 	ASC->ApplyGameplayEffectSpecToSelf(*GEHandle.Data.Get());
+
+	FGameplayCueParameters CueParameters;
+	CueParameters.Location = Hit.ImpactPoint;
+	CueParameters.Instigator = GetInstigator();
+	CueParameters.EffectCauser = this;
+	ASC->ExecuteGameplayCue(GCTag, CueParameters);
+	
 	Destroy();
 	
 } // OnHit

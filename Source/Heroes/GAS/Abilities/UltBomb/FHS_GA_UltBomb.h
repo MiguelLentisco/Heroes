@@ -45,5 +45,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = Bomb, Meta = (Categories = "GameplayCue"))
 	FGameplayTag GCTag;
+
+	UPROPERTY(EditDefaultsOnly, Category = Bomb, Meta = (Categories = "GameplayCue"))
+	FGameplayTag GCSoundTag;
 	
 }; // UFHS_GA_UltBomb

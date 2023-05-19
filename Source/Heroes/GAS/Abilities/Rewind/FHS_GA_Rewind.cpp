@@ -10,7 +10,6 @@
 
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Name_Ability_Rewind, TEXT("Name.Ability.Rewind"));
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Cooldown_Ability_Rewind, TEXT("Cooldown.Ability.Rewind"));
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GameplayCue_, TEXT("Cooldown.Ability.Rewind"));
 
 // ---------------------------------------------------------------------------------------------------------------------
 

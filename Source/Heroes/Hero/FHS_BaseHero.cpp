@@ -3,6 +3,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "FHS_HeroData.h"
+#include "GameplayEffectExtension.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -21,6 +22,7 @@
 AFHS_BaseHero::AFHS_BaseHero()
 {
 	bReplicates = true;
+	ACharacter::SetReplicateMovement(true);
 	SetupConstructor();
 
 	CameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraSpringArm"));
@@ -92,11 +94,11 @@ void AFHS_BaseHero::BeginPlay()
 	Super::BeginPlay();
 
 	MeshOriginalTransform = GetMesh()->GetRelativeTransform();
-
+	ASC->GetGameplayAttributeValueChangeDelegate(UFHS_Attributes_CharacterCore::GetSpeedAttribute()).AddUObject(
+			this, &AFHS_BaseHero::SpeedUpdated);
+	
 	if (HasAuthority())
 	{
-		ASC->GetGameplayAttributeValueChangeDelegate(UFHS_Attributes_CharacterCore::GetSpeedAttribute()).AddUObject(
-		this, &AFHS_BaseHero::SpeedUpdated);
 		ASC->GetGameplayAttributeValueChangeDelegate(UFHS_Attributes_CharacterCore::GetCurrentHealthAttribute()).AddUObject(
 			this, &AFHS_BaseHero::HealthUpdated);
 		ASC->RegisterGameplayTagEvent(TAG_Status_Dead.GetTag()).AddUObject(this, &AFHS_BaseHero::OnPlayerDeadChanged);
@@ -115,6 +117,19 @@ void AFHS_BaseHero::BeginPlay()
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+void AFHS_BaseHero::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	for (AFHS_BaseWeapon* Weapon : Weapons)
+	{
+		Weapon->Destroy();
+	}
+	
+	Super::EndPlay(EndPlayReason);
+	
+} // EndPlay
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 void AFHS_BaseHero::SpeedUpdated(const FOnAttributeChangeData& AttributeData)
 {
 	GetCharacterMovement()->MaxWalkSpeed = AttributeData.NewValue;
@@ -125,6 +140,11 @@ void AFHS_BaseHero::SpeedUpdated(const FOnAttributeChangeData& AttributeData)
 
 void AFHS_BaseHero::HealthUpdated(const FOnAttributeChangeData& AttributeData)
 {
+	if (AttributeData.NewValue < AttributeData.OldValue && AttributeData.GEModData != nullptr)
+	{
+		ASC->ExecuteGameplayCue(GCWoundTag, AttributeData.GEModData->EffectSpec.GetContext());
+	}
+	
 	if (bDead || !FMath::IsNearlyZero(AttributeData.NewValue, 0.01f))
 	{
 		return;
@@ -141,6 +161,7 @@ void AFHS_BaseHero::KillHero()
 	bDead = true;
 	ASC->SetNumericAttributeBase(UFHS_Attributes_CharacterCore::GetCurrentHealthAttribute(), 0.f);
 	ASC->SetTagMapCount(TAG_Status_Dead, 1);
+	ASC->ExecuteGameplayCue(GCDead, ASC->MakeEffectContext());
 	
 } // KillHero
 
@@ -151,6 +172,7 @@ void AFHS_BaseHero::OnPlayerDeadChanged(const FGameplayTag DeadTag, int32 NumCou
 	bDead = NumCount > 0;
 	if (bDead)
 	{
+		ASC->ExecuteGameplayCue(GCWoundTag, ASC->MakeEffectContext());
 		ASC->CancelAllAbilities();
 		ASC->RemoveActiveEffects({});
 	}
@@ -194,6 +216,22 @@ void AFHS_BaseHero::SetHeroData_Implementation(UFHS_HeroData* NewHeroData)
 	OnRep_HeroData(PreviousData);
 	
 } // SetHeroData
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseHero::InitStats()
+{
+	for (const FAttributeDefaults& Attribute : HeroData->Attributes)
+	{
+		ASC->InitStats(Attribute.Attributes, Attribute.DefaultStartingTable);
+	}
+
+	for (const TSoftClassPtr<UGameplayEffect>& GEClass : HeroData->InitialEffects)
+	{
+		ASC->BP_ApplyGameplayEffectToSelf(GEClass.LoadSynchronous(), 1, ASC->MakeEffectContext());
+	}
+	
+} // InitStats
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -248,21 +286,6 @@ void AFHS_BaseHero::OnRep_CurrentWeapon()
 	
 } // OnRep_CurrentWeapons
 
-// ---------------------------------------------------------------------------------------------------------------------
-
-void AFHS_BaseHero::InitStats()
-{
-	for (const FAttributeDefaults& Attribute : HeroData->Attributes)
-	{
-		ASC->InitStats(Attribute.Attributes, Attribute.DefaultStartingTable);
-	}
-
-	for (const TSoftClassPtr<UGameplayEffect>& GEClass : HeroData->InitialEffects)
-	{
-		ASC->BP_ApplyGameplayEffectToSelf(GEClass.LoadSynchronous(), 1, ASC->MakeEffectContext());
-	}
-	
-} // InitStats
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -343,7 +366,8 @@ void AFHS_BaseHero::SetupMeshes()
 	{
 		return;
 	}
-	
+
+	this->JumpMaxCount = HeroData->NumJumps; // This was added at last minute
 	Mesh1P->SetSkeletalMeshAsset(HeroData->Hero1PMesh.LoadSynchronous());
 	GetMesh()->SetSkeletalMeshAsset(HeroData->Mesh.LoadSynchronous());
 	
@@ -448,7 +472,7 @@ void AFHS_BaseHero::BindMovementActions(UInputComponent* PlayerInputComponent)
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseHero::Move(const FInputActionValue& Value)
+void AFHS_BaseHero::Move_Implementation(const FInputActionValue& Value)
 {
 	if (IsInputBlocked() || Controller == nullptr)
 	{
@@ -466,7 +490,7 @@ void AFHS_BaseHero::Move(const FInputActionValue& Value)
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void AFHS_BaseHero::Look(const FInputActionValue& Value)
+void AFHS_BaseHero::Look_Implementation(const FInputActionValue& Value)
 {
 	if (IsInputBlocked() || Controller == nullptr)
 	{

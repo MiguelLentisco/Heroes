@@ -3,6 +3,7 @@
 #include "AIController.h"
 #include "GameplayEffectTypes.h"
 #include "Perception/AIPerceptionTypes.h"
+#include "GameplayTags.h"
 #include "FHS_AIC_Enemy.generated.h"
 
 UCLASS()
@@ -14,6 +15,7 @@ public:
 	AFHS_AIC_Enemy();
 
 	virtual void OnPossess(APawn* InPawn) override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -24,6 +26,8 @@ protected:
 	float SecondsUntilStopChase = 8.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ClampMin = "0"))
 	float LowHealthThreshold = 50.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ClampMin = "0"))
+	float TimeUntilDespawn = 5.f;
 	
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	TSet<TObjectPtr<AActor>> HeroesDetected;
@@ -45,5 +49,9 @@ protected:
 
 	void OnCurrentAmmoChanged(const FOnAttributeChangeData& Data);
 	void OnCurrentHealthChanged(const FOnAttributeChangeData& Data);
+	void OnPawnDead(FGameplayTag DeadTag, int32 NumCounts);
+	void OnTargetDead(FGameplayTag DeadTag, int32 NumCounts);
+
+	void DestroyWhenDead();
 	
 }; // AFHS_AIC_Enemy

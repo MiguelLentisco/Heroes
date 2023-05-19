@@ -131,21 +131,16 @@ void AFHS_BaseWeapon::PrimaryFire(const TSubclassOf<AFHS_BaseProjectile>& Projec
 		return;
 	}
 	
-	const APlayerController* PC = Cast<APlayerController>(HeroOwner->GetController());
-	if (PC == nullptr)
-	{
-		return;
-	}
-	
-	const FRotator SpawnRotation = PC->PlayerCameraManager->GetCameraRotation();
-	const FVector SpawnLocation = HeroOwner->GetActorLocation() + SpawnRotation.RotateVector(MuzzleOffset);
-	FActorSpawnParameters ActorSpawnParams;
-	ActorSpawnParams.SpawnCollisionHandlingOverride =
+	const FRotator SpawnRotation = HeroOwner->GetControlRotation();
+	const FVector SpawnLocation = Mesh->GetSocketLocation(TEXT("Muzzle")) + SpawnRotation.RotateVector(MuzzleOffset);
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.SpawnCollisionHandlingOverride =
 		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+	SpawnParameters.Instigator = HeroOwner;
 
 	// Spawn the projectile at the muzzle
 	auto* Bullet = GetWorld()->SpawnActor<AFHS_BaseProjectile>(ProjectileClass, SpawnLocation, SpawnRotation,
-	                                                           ActorSpawnParams);
+	                                                           SpawnParameters);
 	if (Bullet == nullptr)
 	{
 		return;

@@ -80,6 +80,11 @@ void UFHS_GA_UltBomb::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	Projectile->DamageByDistance = DamageByDistance.LoadSynchronous();
 	Projectile->GCTag = GCTag;
 
+	FGameplayCueParameters CueParameters;
+	CueParameters.Instigator = SpawnParameters.Instigator;
+	CueParameters.EffectCauser = Bomb;
+	ActorInfo->AbilitySystemComponent->ExecuteGameplayCue(GCSoundTag, CueParameters);
+
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	
 } // ActivateAbility
