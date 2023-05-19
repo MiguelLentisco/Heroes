@@ -19,6 +19,8 @@ UE_DEFINE_GAMEPLAY_TAG(TAG_Name_Ability, TEXT("Name.Ability"))
 UE_DEFINE_GAMEPLAY_TAG(TAG_Data, TEXT("Data"))
 UE_DEFINE_GAMEPLAY_TAG(TAG_Data_Cooldown, TEXT("Data.Cooldown"))
 UE_DEFINE_GAMEPLAY_TAG(TAG_Data_Damage, TEXT("Data.Damage"))
+UE_DEFINE_GAMEPLAY_TAG(TAG_Data_Duration, TEXT("Data.Duration"))
+UE_DEFINE_GAMEPLAY_TAG(TAG_Data_Speed, TEXT("Data.Speed"))
 
 UE_DEFINE_GAMEPLAY_TAG(TAG_Effect, TEXT("Effect"));
 UE_DEFINE_GAMEPLAY_TAG(TAG_Effect_Damage, TEXT("Effect.Damage"));

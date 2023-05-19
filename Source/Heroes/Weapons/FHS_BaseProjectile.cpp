@@ -72,8 +72,7 @@ void AFHS_BaseProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor
 	FGameplayEffectSpecHandle GEHandle;
 	if (InstigatorUSC != nullptr)
 	{
-		GEHandle = InstigatorUSC->MakeOutgoingSpec(UFHS_GE_MakeDamage::StaticClass(), 1,
-		                                           InstigatorUSC->MakeEffectContext());
+		GEHandle = InstigatorUSC->MakeOutgoingSpec(DamageGE, 1, InstigatorUSC->MakeEffectContext());
 	}
 	else
 	{

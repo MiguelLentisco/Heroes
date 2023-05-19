@@ -2,6 +2,7 @@
 
 #include "Heroes/GAS/FHS_GameplayTags.h"
 #include "Heroes/GAS/Attributes/FHS_Attributes_CharacterCore.h"
+#include "Heroes/GAS/Effects/FHS_GE_SuperSpeed.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -37,36 +38,27 @@ UFHS_GA_SuperSpeed::UFHS_GA_SuperSpeed()
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-
 void UFHS_GA_SuperSpeed::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                          const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                          const FGameplayEventData* TriggerEventData)
 {
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-	
-	UGameplayEffect* GECosts = NewObject<UGameplayEffect>();
-	GECosts->DurationPolicy = EGameplayEffectDurationType::HasDuration;
-	GECosts->DurationMagnitude = Time;
-
-	FGameplayModifierInfo ModifierInfo;
-	ModifierInfo.Attribute = UFHS_Attributes_CharacterCore::GetSpeedAttribute();
-	ModifierInfo.ModifierOp = EGameplayModOp::Override;
-	ModifierInfo.ModifierMagnitude = Speed;
-	
-	GECosts->Modifiers.Add(ModifierInfo);
 
 	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-	ASC->ApplyGameplayEffectToSelf(GECosts, 1, ASC->MakeEffectContext());
+	const FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(UFHS_GE_SuperSpeed::StaticClass(), 1,
+	                                                                   ASC->MakeEffectContext());
+	const int32 AbilityLevel = GetAbilityLevel(Handle, ActorInfo);
+	SpecHandle.Data->SetSetByCallerMagnitude(TAG_Data_Duration, Time.GetValueAtLevel(AbilityLevel));
+	SpecHandle.Data->SetSetByCallerMagnitude(TAG_Data_Speed, Speed.GetValueAtLevel(AbilityLevel));
+	ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+	
 	ASC->ExecuteGameplayCue(GCTag, ASC->MakeEffectContext());
 	
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-
 	
 } // ActivateAbility
 
