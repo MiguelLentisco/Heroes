@@ -3,6 +3,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "BrainComponent.h"
+#include "GameplayEffectExtension.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Heroes/GAS/FHS_GameplayTags.h"
 #include "Heroes/GAS/Attributes/FHS_Attributes_CharacterCore.h"
@@ -91,6 +92,13 @@ void AFHS_AIC_Enemy::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimul
 	if (HeroesDetected.IsEmpty())
 	{
 		UpdateTargetSight(false);
+
+		// On stealth force 
+		if (HeroTarget != nullptr && HeroTarget->ActorHasTag(TEXT("OnStealth")))
+		{
+			UpdateTarget(nullptr);
+		}
+		
 		return;
 	}
 
@@ -110,6 +118,25 @@ void AFHS_AIC_Enemy::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimul
 	UpdateTarget(FindNearestHero());
 	
 } // OnTargetPerceptionUpdated
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_AIC_Enemy::UpdateTargetSight(bool bTargetVision)
+{
+	if (bTargetVision)
+	{
+		GetWorldTimerManager().ClearTimer(StopChaseTarget);
+	}
+	else
+	{
+		const FTimerDelegate Delegate = FTimerDelegate::CreateUObject(this, &AFHS_AIC_Enemy::UpdateTarget,
+																	  static_cast<AActor*>(nullptr));
+		GetWorldTimerManager().SetTimer(StopChaseTarget, Delegate, SecondsUntilStopChase, false);
+	}
+
+	GetBlackboardComponent()->SetValueAsBool(TEXT("bTargetOnSight"), bTargetVision);
+	
+} // UpdateTargetSight
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -135,24 +162,6 @@ AActor* AFHS_AIC_Enemy::FindNearestHero() const
 	
 } // FindNearestHero
 
-// ---------------------------------------------------------------------------------------------------------------------
-
-void AFHS_AIC_Enemy::UpdateTargetSight(bool bTargetVision)
-{
-	if (bTargetVision)
-	{
-		GetWorldTimerManager().ClearTimer(StopChaseTarget);
-	}
-	else
-	{
-		const FTimerDelegate Delegate = FTimerDelegate::CreateUObject(this, &AFHS_AIC_Enemy::UpdateTarget,
-		                                                              static_cast<AActor*>(nullptr));
-		GetWorldTimerManager().SetTimer(StopChaseTarget, Delegate, SecondsUntilStopChase, false);
-	}
-
-	GetBlackboardComponent()->SetValueAsBool(TEXT("bTargetOnSight"), bTargetVision);
-	
-} // UpdateTargetSight
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -206,6 +215,20 @@ void AFHS_AIC_Enemy::OnCurrentAmmoChanged(const FOnAttributeChangeData& Data)
 void AFHS_AIC_Enemy::OnCurrentHealthChanged(const FOnAttributeChangeData& Data)
 {
 	UpdateLowHealth(Data.NewValue <= LowHealthThreshold);
+
+	const FGameplayEffectModCallbackData* CallbackData = Data.GEModData;
+	if (GetBlackboardComponent()->GetValueAsBool(TEXT("bTargetOnSight")) || CallbackData == nullptr)
+	{
+		return;
+	}
+
+	AActor* DamageInstigator = CallbackData->EffectSpec.GetEffectContext().GetInstigator();
+	if (DamageInstigator == nullptr || !DamageInstigator->ActorHasTag(TEXT("Player")))
+	{
+		return;
+	}
+
+	UpdateTarget(DamageInstigator);
 	
 } // OnCurrentHealthChanged
 

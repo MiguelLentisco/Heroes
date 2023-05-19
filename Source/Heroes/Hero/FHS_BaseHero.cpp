@@ -15,6 +15,7 @@
 #include "Heroes/GAS/FHS_GameplayTags.h"
 #include "Heroes/GAS/Attributes/FHS_Attributes_CharacterCore.h"
 #include "Heroes/GAS/Effects/FHS_GE_KillPlayer.h"
+#include "Heroes/GAS/Effects/FHS_GE_WinPowerByDamage.h"
 #include "Heroes/Player/FHS_PlayerState.h"
 #include "Heroes/Weapons/FHS_BaseWeapon.h"
 #include "Net/UnrealNetwork.h"
@@ -145,13 +146,20 @@ void AFHS_BaseHero::HealthUpdated(const FOnAttributeChangeData& AttributeData)
 	// Effect from GE, apply effects
 	if (AttributeData.GEModData != nullptr && !FMath::IsNearlyEqual(AttributeData.NewValue, AttributeData.OldValue, 0.1f))
 	{
+		const FGameplayEffectSpec& EffectSpec = AttributeData.GEModData->EffectSpec;
 		if (AttributeData.NewValue < AttributeData.OldValue)
 		{
-			ASC->ExecuteGameplayCue(GCWoundTag, AttributeData.GEModData->EffectSpec.GetContext());
+			UAbilitySystemComponent* InstigatorASC = EffectSpec.GetEffectContext().GetInstigatorAbilitySystemComponent();
+			if (InstigatorASC != nullptr && ASC != InstigatorASC)
+			{
+				InstigatorASC->BP_ApplyGameplayEffectToSelf(UFHS_GE_WinPowerByDamage::StaticClass(), 1,
+				                                            InstigatorASC->MakeEffectContext());
+			}
+			ASC->ExecuteGameplayCue(GCWoundTag, EffectSpec.GetContext());
 		}
 		else
 		{
-			ASC->ExecuteGameplayCue(GCHealTag, AttributeData.GEModData->EffectSpec.GetContext());
+			ASC->ExecuteGameplayCue(GCHealTag, EffectSpec.GetContext());
 		}
 	}
 	

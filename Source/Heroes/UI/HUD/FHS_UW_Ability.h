@@ -23,6 +23,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	TWeakObjectPtr<UGameplayAbility> LinkedGA;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GAS)
+	FGameplayTagContainer CooldownTags;
+
 	UFUNCTION(BlueprintImplementableEvent)
 	void SetAbilityName(const FText& AbilityName);
 	UFUNCTION(BlueprintImplementableEvent)

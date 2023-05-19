@@ -28,15 +28,13 @@ void UFHS_UW_Ability::SetupWithGAS_Implementation(UAbilitySystemComponent* ASC)
 	}
 
 	LinkedGA = GAs[0];
+	CooldownTags = *LinkedGA->GetCooldownTags();
 
 	// Setup CD
-	if (const FGameplayTagContainer* CooldownTags = LinkedGA->GetCooldownTags())
+	for (auto CooldownTag = CooldownTags.CreateConstIterator(); CooldownTag; ++CooldownTag)
 	{
-		for (auto CooldownTag = CooldownTags->CreateConstIterator(); CooldownTag; ++CooldownTag)
-		{
-			ASC->RegisterGameplayTagEvent(*CooldownTag, EGameplayTagEventType::AnyCountChange).AddUObject(
-				this, &UFHS_UW_Ability::OnCooldownTagChanged);
-		}
+		ASC->RegisterGameplayTagEvent(*CooldownTag, EGameplayTagEventType::AnyCountChange).AddUObject(
+			this, &UFHS_UW_Ability::OnCooldownTagChanged);
 	}
 
 	// Set name
@@ -71,22 +69,14 @@ void UFHS_UW_Ability::SetupWithGAS_Implementation(UAbilitySystemComponent* ASC)
 void UFHS_UW_Ability::CleanFromGAS_Implementation(UAbilitySystemComponent* ASC)
 {
 	SetVisibility(ESlateVisibility::Collapsed);
-	
-	if (ASC == nullptr || AbilityCommand == EFHS_AbilityCommand::None || LinkedGA == nullptr)
-	{
-		return;
-	}
-	
-	if (const FGameplayTagContainer* CooldownTags = LinkedGA->GetCooldownTags())
-	{
-		for (auto CooldownTag = CooldownTags->CreateConstIterator(); CooldownTag; ++CooldownTag)
-		{
-			ASC->RegisterGameplayTagEvent(*CooldownTag, EGameplayTagEventType::AnyCountChange).RemoveAll(this);
-		}
-	}
 
+	OnCooldownTagChanged(FGameplayTag::EmptyTag, 0);
+	for (auto CooldownTag = CooldownTags.CreateConstIterator(); CooldownTag; ++CooldownTag)
+	{
+		ASC->RegisterGameplayTagEvent(*CooldownTag, EGameplayTagEventType::AnyCountChange).RemoveAll(this);
+	}
 	LinkedGA.Reset();
-	
+
 } // CleanFromGAS_Implementation
 
 // ---------------------------------------------------------------------------------------------------------------------

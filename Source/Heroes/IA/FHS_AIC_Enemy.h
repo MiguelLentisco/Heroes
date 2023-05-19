@@ -18,6 +18,11 @@ public:
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+	UFUNCTION()
+	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+	
+	void UpdateTargetSight(bool bTargetVision);
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UBehaviorTree> BehaviorTree;
@@ -38,12 +43,8 @@ protected:
 	FTimerHandle StopChaseTarget;
 	FDateTime LastActorSet = FDateTime::MinValue();
 	
-	UFUNCTION()
-	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
-
 	AActor* FindNearestHero() const;
 	
-	void UpdateTargetSight(bool bTargetVision);
 	void UpdateTarget(AActor* NewHeroTarget);
 	void UpdateOutOfAmmo(bool bOutOfAmmo);
 	void UpdateLowHealth(bool bLowHealth);

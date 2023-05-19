@@ -48,6 +48,7 @@ void UFHS_GA_Stealth::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	// Hide Actor
 	AActor* Hero = ActorInfo->AvatarActor.Get();
 	Hero->SetActorHiddenInGame(true);
+	Hero->Tags.Add(TEXT("OnStealth"));
 	
 	const float ActualStealthTime = StealthTime.GetValueAtLevel(GetAbilityLevel(Handle, ActorInfo));
 	StealthWaitTask = UAbilityTask_WaitDelay::WaitDelay(this, ActualStealthTime);
