@@ -8,10 +8,24 @@
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+UFHS_BombComponent::UFHS_BombComponent()
+{
+	GEClass = UFHS_GE_MakeDamage::StaticClass();
+	
+} // UFHS_BombComponent
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 void UFHS_BombComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	if (!GetOwner()->HasAuthority())
+	{
+		return;
+	}
+
+	GetOwner()->OnActorHit.AddDynamic(this, &UFHS_BombComponent::OnBombHit);
 	GetWorld()->GetTimerManager().SetTimer(Timer, this, &UFHS_BombComponent::Implode, ImplodeTime);
 	
 } // BeginPlay
@@ -30,6 +44,8 @@ void UFHS_BombComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UFHS_BombComponent::Implode()
 {
+	GetWorld()->GetTimerManager().ClearTimer(Timer);
+	
 	auto* Instigator = GetOwner()->GetInstigator<IAbilitySystemInterface>();
 	if (Instigator == nullptr)
 	{
@@ -68,7 +84,7 @@ void UFHS_BombComponent::Implode()
 		UAbilitySystemComponent* ASC = HeroInterface->GetAbilitySystemComponent();
 		if (InstigatorASC != nullptr)
 		{
-			GEHandle = InstigatorASC->MakeOutgoingSpec(UFHS_GE_MakeDamage::StaticClass(), 1, InstigatorASC->MakeEffectContext());
+			GEHandle = InstigatorASC->MakeOutgoingSpec(GEClass, 1, InstigatorASC->MakeEffectContext());
 		}
 		else
 		{
@@ -92,9 +108,16 @@ void UFHS_BombComponent::OnBombHit(AActor* SelfActor, AActor* OtherActor, FVecto
 		return;
 	}
 
-	GetOwner()->SetActorEnableCollision(false);
-	GetOwner()->SetActorLocation(Hit.ImpactPoint);
-	GetOwner()->AttachToActor(OtherActor, FAttachmentTransformRules::KeepWorldTransform);
+	if (bImplodeOnHit)
+	{
+		Implode();
+	}
+	else
+	{
+		GetOwner()->SetActorEnableCollision(false);
+		GetOwner()->SetActorLocation(Hit.ImpactPoint);
+		GetOwner()->AttachToActor(OtherActor, FAttachmentTransformRules::KeepWorldTransform);
+	}
 	
 } // OnBombHit
 

@@ -12,11 +12,19 @@ class UFHS_BombComponent : public UProjectileMovementComponent
 	GENERATED_BODY()
 	
 public:
+	UFHS_BombComponent();
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bImplodeOnHit = false;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TEnumAsByte<EObjectTypeQuery> ObjectTypeExplosion;
 
 	UPROPERTY()
 	TObjectPtr<UCurveFloat> DamageByDistance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<UGameplayEffect> GEClass;
 	
 	FGameplayTag GCTag;
 	

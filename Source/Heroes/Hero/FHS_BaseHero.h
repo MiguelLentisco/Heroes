@@ -102,6 +102,8 @@ protected:
 
 	bool bInitStatsDueDeath = false;
 	bool bInputSet = false;
+
+	UPROPERTY(Replicated)
 	bool bStunned = false;
 
 	UFUNCTION()

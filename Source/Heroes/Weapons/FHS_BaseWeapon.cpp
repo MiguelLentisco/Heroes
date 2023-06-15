@@ -1,6 +1,5 @@
 ﻿#include "FHS_BaseWeapon.h"
 
-#include "AIController.h"
 #include "FHS_BaseProjectile.h"
 #include "Heroes/Data/FHS_AbilityMeshData.h"
 #include "Heroes/GAS/FHS_AbilitySet.h"

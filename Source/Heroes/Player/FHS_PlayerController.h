@@ -12,6 +12,8 @@ class HEROES_API AFHS_PlayerController : public APlayerController
 	GENERATED_BODY()
 	
 public:
+	AFHS_BaseHero* GetHero() const { return Hero; }
+	
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void AcknowledgePossession(APawn* P) override;
 

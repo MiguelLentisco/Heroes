@@ -52,5 +52,8 @@ protected:
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse,
 	           const FHitResult& Hit);
 
+	virtual void ReactOnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	                        FVector NormalImpulse, const FHitResult& Hit);
+
 }; // AFHS_BaseProjectile
 

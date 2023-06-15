@@ -4,6 +4,8 @@
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "Heroes/GAS/FHS_GameplayTags.h"
 #include "Heroes/GAS/Effects/FHS_GE_ApplyCooldown.h"
+#include "Heroes/Hero/FHS_BaseHero.h"
+#include "Heroes/Weapons/FHS_BaseWeapon.h"
 #include "Perception/AIPerceptionSystem.h"
 #include "Perception/AISense_Sight.h"
 
@@ -49,6 +51,14 @@ void UFHS_GA_Stealth::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	AActor* Hero = ActorInfo->AvatarActor.Get();
 	Hero->SetActorHiddenInGame(true);
 	Hero->Tags.Add(TEXT("OnStealth"));
+
+	if (const auto* TrueHero = Cast<AFHS_BaseHero>(Hero))
+	{
+		if (AFHS_BaseWeapon* Weapon = TrueHero->GetCurrentWeapon())
+		{
+			Weapon->SetActorHiddenInGame(true);
+		}
+	}
 	
 	const float ActualStealthTime = StealthTime.GetValueAtLevel(GetAbilityLevel(Handle, ActorInfo));
 	StealthWaitTask = UAbilityTask_WaitDelay::WaitDelay(this, ActualStealthTime);
@@ -77,6 +87,14 @@ void UFHS_GA_Stealth::EndAbility(const FGameplayAbilitySpecHandle Handle, const 
 	// Hide from IA and make visible
 	AActor* Hero = ActorInfo->AvatarActor.Get();
 	Hero->SetActorHiddenInGame(false);
+
+	if (const auto* TrueHero = Cast<AFHS_BaseHero>(Hero))
+	{
+		if (AFHS_BaseWeapon* Weapon = TrueHero->GetCurrentWeapon())
+		{
+			Weapon->SetActorHiddenInGame(false);
+		}
+	}
 	
 	if (HasAuthority(&ActivationInfo))
 	{

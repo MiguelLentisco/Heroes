@@ -66,6 +66,7 @@ void AFHS_BaseHero::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME_CONDITION(AFHS_BaseHero, HeroData, COND_None);
 	DOREPLIFETIME_CONDITION(AFHS_BaseHero, CurrentWeapon, COND_None);
 	DOREPLIFETIME_CONDITION(AFHS_BaseHero, bDead, COND_None);
+	DOREPLIFETIME_CONDITION(AFHS_BaseHero, bStunned, COND_None);
 	
 } // GetLifetimeReplicatedProps
 

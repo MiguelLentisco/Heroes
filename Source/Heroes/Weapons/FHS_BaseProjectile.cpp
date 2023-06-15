@@ -1,5 +1,3 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #include "FHS_BaseProjectile.h"
 
 #include "AbilitySystemComponent.h"
@@ -48,6 +46,15 @@ AFHS_BaseProjectile::AFHS_BaseProjectile()
 void AFHS_BaseProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
                                 FVector NormalImpulse, const FHitResult& Hit)
 {
+	ReactOnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
+	
+} // OnHit
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void AFHS_BaseProjectile::ReactOnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	FVector NormalImpulse, const FHitResult& Hit)
+{
 	if (!HasAuthority() || OtherActor == nullptr || OtherActor == this || (GetInstigator() != nullptr && GetInstigator()
 		== OtherActor))
 	{
@@ -90,6 +97,6 @@ void AFHS_BaseProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor
 	
 	Destroy();
 	
-} // OnHit
+} // ReactOnHit
 
 // ---------------------------------------------------------------------------------------------------------------------
