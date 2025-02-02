@@ -34,7 +34,7 @@ void AFHS_SafeZone::OnPawnEntered(UPrimitiveComponent* OverlappedComponent, AAct
 	{
 		return;
 	}
-
+	
 	UAbilitySystemComponent* ASC = Hero->GetAbilitySystemComponent();
 	const FActiveGameplayEffectHandle Handle = ASC->BP_ApplyGameplayEffectToSelf(
 		UFHS_GE_GrantImmunity::StaticClass(), 1, ASC->MakeEffectContext());

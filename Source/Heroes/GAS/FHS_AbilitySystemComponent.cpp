@@ -126,7 +126,7 @@ void UFHS_AbilitySystemComponent::BindAbilityActivationToEnhancedInputComponent(
 	const TMap<EFHS_AbilityCommand, FAbilityBindData>& Abilities = AbilitySet->Abilities;
 	
 	// Same as the original func, reset ability bindings
-	bIsNetDirty = true;
+	//bIsNetDirty = true;
 	GetBlockedAbilityBindings_Mutable().SetNumZeroed(Abilities.Num());
 	
 	for (const TPair<EFHS_AbilityCommand, FAbilityBindData>& Ability : AbilitySet->Abilities)

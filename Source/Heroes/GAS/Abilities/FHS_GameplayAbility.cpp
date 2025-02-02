@@ -60,7 +60,7 @@ void UFHS_GameplayAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle,
 		SpecHandle.Data->SetByCallerTagMagnitudes = AbilitySpec->SetByCallerTagMagnitudes;
 	}
 	
-	SpecHandle.Data->StackCount = AbilityLevel;
+	SpecHandle.Data->SetStackCount(AbilityLevel);
 	ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
 	
 } // ApplyCost
